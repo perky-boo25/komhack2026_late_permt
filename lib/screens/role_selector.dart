@@ -18,9 +18,9 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
       // Navigator.pushNamed(context, '/location-picker');
 
       // TO BE REMOVED/ temporary placeholder
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('going to location picker...')),
-      );
+      Navigator.pushNamed(context, '/home');
+      return;
+
     } else {
       // go to responder login when ready
       // Navigator.pushNamed(context, '/responder-login');
