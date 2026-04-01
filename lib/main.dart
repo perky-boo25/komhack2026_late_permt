@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 // import screens here (one file per screen)
 import 'screens/role_selector.dart';
 import 'screens/HomeScreen.dart';
-import 'package:komhack2026_late_permt/screens/role_selector.dart';
 
 void main() {
   runApp(const MyApp());
