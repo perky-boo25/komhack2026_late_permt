@@ -89,7 +89,7 @@ class AdminAssign extends StatelessWidget{
                                     tileColor: Colors.grey[300],
                                     leading: Icon(Icons.fireplace_outlined),
                                       title: Text('Location Name'),
-                                      subtitle: Text('lat: 40.7128 long: -74.0060'),
+                                      subtitle: Text('lat: 1234.000 long: -5678.000'),
                                       trailing: ElevatedButton(
                                         onPressed: () {},
                                         child: Text('Assign'),
