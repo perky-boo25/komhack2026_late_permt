@@ -7,14 +7,20 @@ import 'package:flutter/material.dart';
 //       maybe the safe one could also update (?)
 //       unify colors, fontstyle, fontsize
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen>{
 
   void testonly() {
     print('is working'); //for testing lng
   }
 
-
+  // UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -318,8 +324,8 @@ class HomeScreen extends StatelessWidget {
 
           //big ass emergency btn
           GestureDetector(
-            onLongPress: () => print('long press'), // for test
-            onTap: () => print('one tap'), // for test
+            onLongPress: _handleHold,
+            onTap: _handleTap,
             child: Container(
               width: 220,
               height: 230,
@@ -405,6 +411,84 @@ class HomeScreen extends StatelessWidget {
           ],
         )
       )
+    );
+  }
+
+  // POP UP AND FUNCTIONS
+  void _handleTap() async {
+    final type = await _showSelection();
+    if (type == null) return;
+
+    final confirmed = await _showConfirmDialog();
+    if (confirmed) {
+      await _showSignalSent();
+      // insert responder ui update here
+    }
+  }
+
+  void _handleHold() async {
+    final confirmed = await _showConfirmDialog();
+    if (confirmed) {
+      await _showSignalSent();
+      // insert responder ui update here
+    }
+  }
+
+  Future<String?> _showSelection() async {
+    return showDialog<String>(
+        context: context,
+        builder: (_) => SimpleDialog(
+          title: Text("Select Emergency Type"),
+          children: [
+            _option("Fire"),
+            _option("Flood"),
+            _option("Crime"),
+            _option("Others"),
+          ],
+        ),
+    );
+  }
+
+  Widget _option(String type){
+    return SimpleDialogOption(
+      onPressed: () => Navigator.pop(context, type),
+      child: Text(type),
+    );
+  }
+
+  Future<bool> _showConfirmDialog() async {
+    final result = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text("Are you sure?"),
+          content: Text("This will notify responders right away."),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text("Cancel"),
+            ),
+            ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text("Yes"),
+            ),
+          ],
+        ),
+    );
+    return result ?? false;
+  }
+  Future<void> _showSignalSent() async{
+    await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("Signal Sent"),
+          content: Text("Your emergency alert has been sent to responders."),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("OK"),
+            ),
+          ],
+        ),
     );
   }
 }
