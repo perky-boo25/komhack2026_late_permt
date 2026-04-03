@@ -18,6 +18,7 @@ migrate_working_dir/
 *.iws
 .idea/
 
+
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
@@ -43,3 +44,32 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# flutter
+build/
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+ios/Pods/
+
+# android
+android/.gradle/
+android/app/debug.keystore
+
+# system files
+*.log
+*.tmp
+*.history
+.bash_history
+
+# emulator / adb
+adbkey*
+*.keystore
+
+# vscode
+.vscode/
+
+# mac/windows junk
+.DS_Store
+Thumbs.db
