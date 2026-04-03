@@ -38,12 +38,12 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
 
-                // ── LOGO ────────────────────────────────────
+                //logo
                 const LogoWidget(),
 
                 const SizedBox(height: 16),
 
-                // ── APP NAME ─────────────────────────────────
+                // app name
                 const Text(
                   'Application Name',
                   style: TextStyle(
@@ -56,7 +56,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
 
                 const SizedBox(height: 4),
 
-                // ── TAGLINE ──────────────────────────────────
+                // tagline
                 const Text(
                   'insert tagline',
                   style: TextStyle(
@@ -68,7 +68,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
 
                 const SizedBox(height: 48),
 
-                //  LABEL
+                //  label
                 Center(child: Text(
                   'I am a ...',
                   style:TextStyle(
@@ -81,7 +81,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
 
                 const SizedBox(height: 16),
 
-                // ── RESIDENT TILE ────────────────────────────
+                // resident picker
                 GestureDetector(
                   onTap: () => setState(() => isResidentSelected = true),
                   child: RoleOptionTile(
@@ -95,7 +95,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
 
                 const SizedBox(height: 10),
 
-                // ── RESPONDER TILE ───────────────────────────
+                // responder picker
                 GestureDetector(
                   onTap: () => setState(() => isResidentSelected = false),
                   child: RoleOptionTile(
@@ -109,7 +109,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
 
                 const SizedBox(height: 28),
 
-                // ── CONTINUE BUTTON ──────────────────────────
+                // continue button
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -154,7 +154,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
 }
 
 
-// ── Logo Widget ─────────────────────────────────────────────────
+// logo widget
 class LogoWidget extends StatelessWidget {
   const LogoWidget({super.key});
 
@@ -175,7 +175,7 @@ class LogoWidget extends StatelessWidget {
 }
 
 
-// ── Role Option Tile ────────────────────────────────────────────
+// role option label
 class RoleOptionTile extends StatelessWidget {
   final String label;
   final String sublabel;
