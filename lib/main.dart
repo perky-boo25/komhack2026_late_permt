@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 // import screens here (one file per screen)
 import 'screens/role_selector.dart';
-import 'screens/HomeScreen.dart';
+import 'screens/main_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
         // '/location-picker': (context) => const LocationPickerScreen(),
         // detect and confirm location
 
-        '/home': (context) => const HomeScreen(),
+        '/home': (context) => const MainScreen(),
         // map, reports, emergency button
 
         // '/signal-sent': (context) => const SignalSentScreen(),
