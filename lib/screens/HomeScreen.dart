@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 
 // TODO: add nav for switching from home to my reports and vice versa
@@ -14,7 +12,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>{
+class _HomeScreenState extends State<HomeScreen> {
 
   void testonly() {
     print('is working'); //for testing lng
@@ -23,312 +21,214 @@ class _HomeScreenState extends State<HomeScreen>{
   // UI
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        titleSpacing: 0,
-        backgroundColor: const Color(0xFF0C5D96),
-        title: Row(
+    return SingleChildScrollView(
+      child: Column(
         children: [
-          Placeholder( //for app icon if meron
-            fallbackHeight: 20,
-            fallbackWidth: 20,
-          ),
+          SizedBox(height: 10),
 
-          SizedBox(width: 17), //spacing between icon and appname
-
-          Text(
-            'AppName', style: TextStyle(
-            fontSize: 25,
-            color: Colors.white,
-            fontWeight: FontWeight.w900,
-            )
-          ),
-          // const Expanded(child: SizedBox()),
-          const Spacer(),//push login to rightmost
-
-          //LOGIN BTN not sure if meron pa since my nav pala pabalik remove lang if di needd
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF00C853),            ),
-            onPressed: testonly,
-            child: const Text('LOGIN')
-          ),
-
-          const SizedBox(width: 10), //remove till here
-
-        ])
-      ),
-
-      body: Column(
-
-        children: [
-
-          //brgy, all clear, safe
-          Container(
-            width: double.infinity,
-            color: Colors.blueGrey[50],
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'brgy. name',
-                        style: TextStyle(
-                          fontSize: 17,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'ALL CLEAR',
-                        style: TextStyle(
-                          fontSize: 17,
-                          color: Color(0xFF0C5D96),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD7F7DE),
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.check_circle,
-                        color: Color(0xFF27AE60),
-                        size: 20,
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        'Safe',
-                          style: TextStyle(
-                          color: Color(0xFF2E8B57),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-
-          SizedBox(height: 10), //space between brg,allsafe part and loc img
 
           //placeholder for loc
           Center(
             child: SizedBox(
-              width: 380,
-              height: 200,
+              width: 390,
+              height: 270,
               child: Placeholder(),
             ),
           ),
 
-          SizedBox(height: 30), //space between loc img and quick rep text
+          SizedBox(height: 30),
+          //space between loc img and quick rep text
 
-          //quickreport section
-          Column(
-            children: [
-              Text(
-                  'Quick Report',
-                  style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                )
+          // //quickreport section
+          // Column(
+          //   children: [
+          //     Text(
+          //         'Quick Report',
+          //         style: TextStyle(
+          //         fontSize: 22,
+          //         fontWeight: FontWeight.bold,
+          //       )
+          //
+          //     ),
+          //
+          //     SizedBox(height: 20), //space between quick rep text and reports
+          //
+          //     // fire and flood buttons
+          //     Row(
+          //       children: [
+          //         const SizedBox(width: 20),
+          //         //fire
+          //         SizedBox(
+          //           width: 180,
+          //           height: 55,
+          //           child: OutlinedButton(
+          //             style: OutlinedButton.styleFrom(
+          //               backgroundColor: Colors.grey[200],
+          //               side: const BorderSide(color: Colors.black, width: 2),
+          //               shape: RoundedRectangleBorder(
+          //                 borderRadius: BorderRadius.circular(12),
+          //               ),
+          //               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          //             ),
+          //             onPressed:testonly,
+          //             child: const Row(
+          //               mainAxisAlignment: MainAxisAlignment.center,
+          //               children: [
+          //                 Icon(
+          //                   Icons.local_fire_department,
+          //                   color: Colors.orange,
+          //                   size: 35,
+          //                 ),
+          //                 SizedBox(width: 10),
+          //                 Text(
+          //                   "FIRE",
+          //                   style: TextStyle(
+          //                     fontSize: 24,
+          //                     color: Colors.black,
+          //                     fontWeight: FontWeight.bold,
+          //                   ),
+          //                 ),
+          //               ],
+          //             ),
+          //           ),
+          //         ),
+          //
+          //         const Spacer(), //space between fire and flood
+          //       //flood
+          //         SizedBox(
+          //           width: 180,
+          //           height: 55,
+          //           child: OutlinedButton(
+          //             style: OutlinedButton.styleFrom(
+          //               backgroundColor: Colors.grey[200],
+          //               side: const BorderSide(color: Colors.black, width: 2),
+          //               shape: RoundedRectangleBorder(
+          //                 borderRadius: BorderRadius.circular(12),
+          //               ),
+          //             ),
+          //             onPressed: testonly,
+          //             child: Row(
+          //               mainAxisAlignment: MainAxisAlignment.center,
+          //               children: [
+          //                 Icon(
+          //                   Icons.waves,
+          //                   color: Colors.blue[700],
+          //                   size: 35,
+          //                 ),
+          //
+          //                 SizedBox(width: 10),
+          //                 Text(
+          //                   "FLOOD",
+          //                   style: TextStyle(
+          //                     fontSize: 24,
+          //                     color: Colors.black,
+          //                     fontWeight: FontWeight.bold,
+          //                   ),
+          //                 ),
+          //               ],
+          //             ),
+          //           ),
+          //         ),
+          //
+          //         const SizedBox(width: 20),
+          //       ],
+          //     ),
+          //
+          //     SizedBox(height: 20), //space between two rows
+          //
+          //     // medical and other buttons
+          //     Row(
+          //       children: [
+          //         const SizedBox(width: 20),
+          //         //med
+          //         SizedBox(
+          //           width: 180,
+          //           height: 55,
+          //           child: OutlinedButton(
+          //             style: OutlinedButton.styleFrom(
+          //               backgroundColor: Colors.grey[200],
+          //               side: const BorderSide(color: Colors.black, width: 2),
+          //               shape: RoundedRectangleBorder(
+          //                 borderRadius: BorderRadius.circular(12),
+          //               ),
+          //               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          //             ),
+          //             onPressed: testonly,
+          //             child: const Row(
+          //               mainAxisAlignment: MainAxisAlignment.center,
+          //               children: [
+          //                 Icon(
+          //                   Icons.medical_services,
+          //                   color: Colors.red,
+          //                   size: 35,
+          //                 ),
+          //                 SizedBox(width: 10),
+          //                 Text(
+          //                   "MEDICAL",
+          //                   style: TextStyle(
+          //                     fontSize: 24,
+          //                     color: Colors.black,
+          //                     fontWeight: FontWeight.bold,
+          //                   ),
+          //                 ),
+          //               ],
+          //             ),
+          //           ),
+          //         ),
+          //
+          //         const Spacer(), // space between medical and other
+          //
+          //         //other
+          //         SizedBox(
+          //           width: 180,
+          //           height: 55,
+          //           child: OutlinedButton(
+          //             style: OutlinedButton.styleFrom(
+          //               backgroundColor: Colors.grey[200],
+          //               side: const BorderSide(color: Colors.black, width: 2),
+          //               shape: RoundedRectangleBorder(
+          //                 borderRadius: BorderRadius.circular(12),
+          //               ),
+          //             ),
+          //             onPressed: testonly,
+          //             child: const Row(
+          //               mainAxisAlignment: MainAxisAlignment.center,
+          //               children: [
+          //                 Icon(
+          //                   Icons.warning,
+          //                   color: Colors.grey,
+          //                   size: 35,
+          //                 ),
+          //                 SizedBox(width: 10),
+          //                 Text(
+          //                   "OTHER",
+          //                   style: TextStyle(
+          //                     fontSize: 24,
+          //                     color: Colors.black,
+          //                     fontWeight: FontWeight.bold,
+          //                   ),
+          //                 ),
+          //               ],
+          //             ),
+          //           ),
+          //         ),
+          //
+          //         const SizedBox(width: 20),
+          //       ],
+          //     ),
+          //   ]
+          // ),
 
-              ),
-
-              SizedBox(height: 20), //space between quick rep text and reports
-
-              // fire and flood buttons
-              Row(
-                children: [
-                  const SizedBox(width: 20),
-                  //fire
-                  SizedBox(
-                    width: 180,
-                    height: 55,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.grey[200],
-                        side: const BorderSide(color: Colors.black, width: 2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                      ),
-                      onPressed:testonly,
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.local_fire_department,
-                            color: Colors.orange,
-                            size: 35,
-                          ),
-                          SizedBox(width: 10),
-                          Text(
-                            "FIRE",
-                            style: TextStyle(
-                              fontSize: 24,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const Spacer(), //space between fire and flood
-                //flood
-                  SizedBox(
-                    width: 180,
-                    height: 55,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.grey[200],
-                        side: const BorderSide(color: Colors.black, width: 2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: testonly,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.waves,
-                            color: Colors.blue[700],
-                            size: 35,
-                          ),
-
-                          SizedBox(width: 10),
-                          Text(
-                            "FLOOD",
-                            style: TextStyle(
-                              fontSize: 24,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 20),
-                ],
-              ),
-
-              SizedBox(height: 20), //space between two rows
-
-              // medical and other buttons
-              Row(
-                children: [
-                  const SizedBox(width: 20),
-                  //med
-                  SizedBox(
-                    width: 180,
-                    height: 55,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.grey[200],
-                        side: const BorderSide(color: Colors.black, width: 2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                      ),
-                      onPressed: testonly,
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.medical_services,
-                            color: Colors.red,
-                            size: 35,
-                          ),
-                          SizedBox(width: 10),
-                          Text(
-                            "MEDICAL",
-                            style: TextStyle(
-                              fontSize: 24,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const Spacer(), // space between medical and other
-
-                  //other
-                  SizedBox(
-                    width: 180,
-                    height: 55,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.grey[200],
-                        side: const BorderSide(color: Colors.black, width: 2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: testonly,
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.warning,
-                            color: Colors.grey,
-                            size: 35,
-                          ),
-                          SizedBox(width: 10),
-                          Text(
-                            "OTHER",
-                            style: TextStyle(
-                              fontSize: 24,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 20),
-                ],
-              ),
-            ]
-          ),
-
-
-          SizedBox(height: 15), //space above emergency btn
+          SizedBox(height: 55),
+          //space above emergency btn
 
           //big ass emergency btn
           GestureDetector(
             onLongPress: _handleHold,
             onTap: _handleTap,
             child: Container(
-              width: 220,
-              height: 230,
+              width: 300,
+              height: 250,
               decoration: BoxDecoration(
                 color: Colors.red,
                 shape: BoxShape.circle,
@@ -337,159 +237,248 @@ class _HomeScreenState extends State<HomeScreen>{
                   width: 7,
                 ),
               ),
-
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "EMERGENCY",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 27,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Hold to send emergency\nsignal immediately",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                    ),
-                  ),
-                ],
+              child: Center(
+                child: Icon(
+                  Icons.notifications,
+                  color: Colors.white,
+                  size: 80,
+                ),
               ),
             ),
           ),
+
+          SizedBox(height: 20),
+
+          Text(
+            "Hold to send emergency an emergency signal.",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            "Tap 1 time to report an incident.",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 17,
+            ),
+          ),
         ],
+
       ),
-
-
-      //bott nav
-      bottomNavigationBar: Container(
-        height:65,
-        color: Colors.blueGrey[50],
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children:  [
-            Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // home icon
-                  Icon(
-                    Icons.home,
-                    color: Color(0xFF0C5D96),
-                    size: 35,
-                  ),
-
-                  Text(
-                    'Home',
-                    style: TextStyle(
-                      fontSize: 17,
-                    )
-                  ),
-                ],
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                //myreports icon
-                Icon(
-                  Icons.list_alt,
-                  color: Colors.grey,
-                  size: 35,
-                ),
-                Text(
-                  'My Reports',
-                  style: TextStyle(
-                    fontSize: 17,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        )
-      )
     );
   }
 
   // POP UP AND FUNCTIONS
-  void _handleTap() async {
-    final type = await _showSelection();
-    if (type == null) return;
+  // cooldown
+  DateTime? _lastSentTime;
+  final Duration _cooldownDuration = Duration(minutes: 3);
 
-    final confirmed = await _showConfirmDialog();
-    if (confirmed) {
-      await _showSignalSent();
-      // insert responder ui update here
-    }
+  bool _isOnCooldown(){
+    if (_lastSentTime == null) return false;
+    return DateTime.now().difference(_lastSentTime!) < _cooldownDuration;
   }
 
-  void _handleHold() async {
-    final confirmed = await _showConfirmDialog();
-    if (confirmed) {
-      await _showSignalSent();
-      // insert responder ui update here
-    }
+  int _leftCooldownSeconds(){
+    if (_lastSentTime == null) return 0;
+    final remain = _cooldownDuration - DateTime.now().difference(_lastSentTime!);
+    return remain.inSeconds > 0 ? remain.inSeconds : 0;
   }
 
-  Future<String?> _showSelection() async {
-    return showDialog<String>(
-        context: context,
-        builder: (_) => SimpleDialog(
-          title: Text("Select Emergency Type"),
-          children: [
-            _option("Fire"),
-            _option("Flood"),
-            _option("Crime"),
-            _option("Others"),
-          ],
-        ),
-    );
-  }
+  Future<void> _showCooldownDialog() async {
+    final secs = _leftCooldownSeconds();
+    final mins = (secs / 60).ceil();
 
-  Widget _option(String type){
-    return SimpleDialogOption(
-      onPressed: () => Navigator.pop(context, type),
-      child: Text(type),
-    );
-  }
-
-  Future<bool> _showConfirmDialog() async {
-    final result = await showDialog<bool>(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text("Are you sure?"),
-          content: Text("This will notify responders right away."),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text("Cancel"),
-            ),
-            ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text("Yes"),
-            ),
-          ],
-        ),
-    );
-    return result ?? false;
-  }
-  Future<void> _showSignalSent() async{
     await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text("Signal Sent"),
-          content: Text("Your emergency alert has been sent to responders."),
-          actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("OK"),
-            ),
-          ],
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text("Cooldown Active"),
+        content: Text("Please wait $mins minute(s) before sending another alert."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // tap
+  void _handleTap() async {
+    if (_isOnCooldown()){
+      await _showCooldownDialog();
+      return;
+    }
+
+    final result = await _showSelection();
+    if (result == null) return;
+
+    _lastSentTime = DateTime.now();
+    await _showSignalSent();
+    // insert responder ui update here
+  }
+
+  // hold
+  void _handleHold() async {
+    if (_isOnCooldown()){
+      await _showCooldownDialog();
+      return;
+    }
+
+    final result = await _showSelection(isUrgent: true);
+    if (result == null) return;
+
+    _lastSentTime = DateTime.now();
+    await _showSignalSent();
+    // insert responder ui update here
+  }
+
+  // main dialogs
+  Future<Map<String, String>?> _showSelection({bool isUrgent = false}) async {
+    String? selectedType;
+    final otherController = TextEditingController();
+    final locController = TextEditingController();
+
+      Widget buildTypeButton(String label, IconData icon, Color color) {
+        final isSelected = selectedType == label;
+
+        return GestureDetector(
+            onTap: () {
+              selectedType = label;
+            },
+            child: StatefulBuilder(
+              onTap: () => setState(() => selectedType = label),
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: isSelected ? color.withOpacity(0.2) : Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected ? color : Colors.grey.shade300,
+                    width: 2,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Icon(icon, color: color, size: 28),
+                    SizedBox(height: 5),
+                    Text(label),
+                  ],
+                ),
+              ),
+            );
         ),
+      },
+    return showDialog<Map<String, String>>(
+      context: context,
+      builder: (context){
+        return StatefulBuilder(
+            builder: (context, setState){
+              return AlertDialog(
+                title: Text("Confirm Emergency"),
+                content: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // type of emergency
+                      Text("Type of Emergency", style: TextStyle(fontWeight: FontWeight.bold)),
+                      RadioListTile(
+                        title: Text("Fire"),
+                        value: "Fire",
+                        groupValue: selectedType,
+                        onChanged: (val) => setState(() => selectedType = val),
+                      ),
+                      RadioListTile(
+                        title: Text("Flood"),
+                        value: "Flood",
+                        groupValue: selectedType,
+                        onChanged: (val) => setState(() => selectedType = val),
+                      ),
+                      RadioListTile(
+                        title: Text("Medical"),
+                        value: "Medical",
+                        groupValue: selectedType,
+                        onChanged: (val) => setState(() => selectedType = val),
+                      ),
+                      RadioListTile(
+                        title: Text("Other"),
+                        value: "Other",
+                        groupValue: selectedType,
+                        onChanged: (String? val) => setState(() => selectedType = val),
+                      ),
+
+                      // other input
+                      TextField(
+                        controller: otherController,
+                        enabled: selectedType == "Other",
+                        decoration: InputDecoration(
+                          hintText: "please specify (optional)",
+                        ),
+                      ),
+
+                      SizedBox(height: 16),
+
+                      // location details
+                      Text("Add Location Details", style: TextStyle(fontWeight: FontWeight.bold)),
+                      TextField(
+                        controller: locController,
+                        decoration: InputDecoration(
+                          hintText: "please specify (optional)",
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, null),
+                    child: Text("Cancel"),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                    ),
+                    onPressed: () {
+                      if (selectedType == null) return;
+
+                      Navigator.pop(context, {
+                        "type": selectedType == "Other"
+                          ? otherController.text
+                          : selectedType!,
+                        "location": locController.text, // only what is typed in optional loc field
+                        "urgent": isUrgent.toString(),
+                      });
+                    },
+                    child: Text("Send"),
+                  ),
+                ],
+              );
+            },
+        );
+      },
+    );
+  }
+
+  // signal sent
+  Future<void> _showSignalSent() async {
+    await showDialog(
+      context: context,
+      builder: (context) =>
+          AlertDialog(
+            title: Text("Signal Sent"),
+            content: Text("Your emergency alert has been sent to responders."),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("OK"),
+              ),
+            ],
+          ),
     );
   }
 }
-
