@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:komhack2026_late_permt/screens/responder/responder_shell.dart';
 
 // import screens here (one file per screen)
 import 'screens/role_selector.dart';
-import 'screens/main_screen.dart';
+import 'screens/user/main_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -23,9 +24,9 @@ class MyApp extends StatelessWidget {
       // routes for navigation
       // use navigator.pushNamed(context, '/route-name');
       routes: {
-
         // shared
         '/role-select': (context) => const RoleSelectionScreen(),
+
         // first screen: choose resident or responder
 
         // ================ R E S I D E N T F L O W =========================
@@ -33,8 +34,8 @@ class MyApp extends StatelessWidget {
 
         // '/location-picker': (context) => const LocationPickerScreen(),
         // detect and confirm location
-
         '/home': (context) => const MainScreen(),
+
         // map, reports, emergency button
 
         // '/signal-sent': (context) => const SignalSentScreen(),
@@ -49,8 +50,7 @@ class MyApp extends StatelessWidget {
         // =============== R E S P O N D E R F L O W =====================
         // '/responder-login': (context) => const ResponderLoginScreen(),
         // login screen
-
-        // '/responder-dashboard': (context) => const ResponderDashboardScreen(),
+        '/responder-dashboard': (context) => const ResponderShell(),
         // map, incidents, tasks
 
         // =============== A D M I N F L O W =====================

@@ -8,7 +8,6 @@ class RoleSelectionScreen extends StatefulWidget {
 }
 
 class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
-
   // true = resident, false = responder
   bool isResidentSelected = true;
 
@@ -20,10 +19,10 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
       // TO BE REMOVED/ temporary placeholder
       Navigator.pushNamed(context, '/home');
       return;
-
     } else {
       // go to responder login when ready
-      // Navigator.pushNamed(context, '/responder-login');
+      Navigator.pushNamed(context, '/responder-dashboard');// para laang ni mag dirtso sa dashboard
+      // change to log in when ready na
 
       // TO BE REMOVED/ temporary placeholder
       ScaffoldMessenger.of(context).showSnackBar(
@@ -45,7 +44,6 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-
                 // logo
                 const LogoWidget(),
 
@@ -66,10 +64,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                 // tagline
                 const Text(
                   'tagline',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.black45,
-                  ),
+                  style: TextStyle(fontSize: 13, color: Colors.black45),
                 ),
 
                 const SizedBox(height: 56),
@@ -140,7 +135,6 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   }
 }
 
-
 // logo widget
 // replace with real image when ready
 class LogoWidget extends StatelessWidget {
@@ -163,7 +157,6 @@ class LogoWidget extends StatelessWidget {
     );
   }
 }
-
 
 // role option tile
 // reusable card for role selection
