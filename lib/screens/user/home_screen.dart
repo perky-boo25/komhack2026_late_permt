@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -57,6 +58,8 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       if (permission == LocationPermission.deniedForever ||
           permission == LocationPermission.denied) {
+            //GPS is not active nor usable
+            widget.onGpsChanged?.call(false);
         setState(() {
           _locationLoading = false;
           _locationError = true;
@@ -379,14 +382,36 @@ class _HomeScreenState extends State<HomeScreen> {
     if (confirmed) {
       await _showSignalSent();
       // insert responder ui update here
+      // TODO: replace this with real Firestore incident submission
+      // Example real code later:
+      // await FirebaseFirestore.instance.collection('incidents').add({
+      //   'incidentId': generatedId,
+      //   'createdBy': currentUserId,
+      //   'emergencyType': type,
+      //   'barangay': normalizedBarangay,
+      //   'status': 'pending',
+      //   'createdAt': FieldValue.serverTimestamp(),
+      // });
     }
   }
+
+
 
   void _handleHold() async {
     final confirmed = await _showConfirmDialog();
     if (confirmed) {
       await _showSignalSent();
       // insert responder ui update here
+      // TODO: replace this with real Firestore emergency signal submission
+      // Example real code later:
+      // await FirebaseFirestore.instance.collection('incidents').add({
+      //   'incidentId': generatedId,
+      //   'createdBy': currentUserId,
+      //   'emergencyType': 'Emergency',
+      //   'barangay': normalizedBarangay,
+      //   'status': 'pending',
+      //   'createdAt': FieldValue.serverTimestamp(),
+      // });
     }
   }
 

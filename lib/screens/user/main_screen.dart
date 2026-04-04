@@ -22,13 +22,13 @@ class _MainScreenState extends State<MainScreen> {
   bool isSafe = false;
 
   //TODO: replace later with actual logged-in na UID
-  final String userId = '00001';
+  final String userId = '2026-12345';
 
-  //subscription for device connectivity changes
+  //for device connectivity changes
   StreamSubscription<List<ConnectivityResult>>? _networkSub;
 
-  //
-  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _safeSub;
+  // listens to incidents and computes safety automatically
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _safetySub;
 
   late final List<Widget> pages;
 
@@ -68,7 +68,7 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  // New: checks current network state once during startup
+  // checks current network state once during startup
   Future<void> _checkInitialNetworkStatus() async {
     final result = await Connectivity().checkConnectivity();
     final bool online = result != ConnectivityResult.none;
@@ -89,7 +89,7 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  // New: listens to actual device internet/network connectivity
+  // listens to actual device internet/network connectivity
   void _listenToNetworkStatus() {
     _networkSub = Connectivity().onConnectivityChanged.listen((result) async {
       // Device is considered online if connectivity is not none
@@ -112,13 +112,23 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-    // New: listens to Firestore safety status of the detected barangay in real time
+  //to match firestore values
+  String _normalizedBarangay(String input) {
+    return input
+    .trim()
+    .toLowerCase()
+    .replaceAll(RegExp(r'[^a-z0-9]'), '_')
+    .replaceAll(RegExp(r'_+'), '_')
+    .replaceAll(RegExp(r'^_|_$'), '');
+  }
+
+    //listens to Firestore safety status of the detected barangay in real time
   Future<void> _listenToAreaSafety(String barangay) async {
     // cancel previous listener first so only one barangay listener is active
-    await _safeSub?.cancel();
+    await _safetySub?.cancel();
 
     // normalize barangay name for safer document ids
-    final normalizedBarangay = barangay.trim().toLowerCase().replaceAll(' ', '_');
+    final normalizedBarangay = _normalizedBarangay(barangay);
 
     try {
       // optional: save the user's detected barangay
@@ -130,24 +140,29 @@ class _MainScreenState extends State<MainScreen> {
       // optional only; ignore Firestore write errors for now
     }
 
-    _safeSub = FirebaseFirestore.instance
-        .collection('areas')
-        .doc(normalizedBarangay)
+    _safetySub = FirebaseFirestore.instance
+        .collection('incidents')
+        .where('barangay', isEqualTo: normalizedBarangay)
+        .where('status', whereIn: ['pending', 'in_progress'])
         .snapshots()
-        .listen((doc) {
-      final data = doc.data();
+        .listen((snapshot) {
+      print("Docs found: ${snapshot.docs.length}");
 
       if (!mounted) return;
 
       setState(() {
         // if document does not exist yet, default to false for now
-        isSafe = data?['isSafe'] == true;
+        isSafe = snapshot.docs.isEmpty;
       });
     });
   }
 
-
-
+  @override
+  void dispose() {
+    _networkSub?.cancel();
+    _safetySub?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
