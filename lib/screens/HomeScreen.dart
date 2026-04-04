@@ -318,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (result == null) return;
 
     _lastSentTime = DateTime.now();
-    await _showSignalSent();
+    await _showSignalSent(result);
     // insert responder ui update here
   }
 
@@ -333,7 +333,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (result == null) return;
 
     _lastSentTime = DateTime.now();
-    await _showSignalSent();
+    await _showSignalSent(result);
     // insert responder ui update here
   }
 
@@ -341,144 +341,310 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<Map<String, String>?> _showSelection({bool isUrgent = false}) async {
     String? selectedType;
     final otherController = TextEditingController();
-    final locController = TextEditingController();
+    final descController = TextEditingController();
 
-      Widget buildTypeButton(String label, IconData icon, Color color) {
-        final isSelected = selectedType == label;
+    Widget buildTypeButton(String label, IconData icon, Color color, void Function(void Function()) setState) {
+      final isSelected = selectedType == label;
 
-        return GestureDetector(
-            onTap: () {
-              selectedType = label;
-            },
-            child: StatefulBuilder(
-              onTap: () => setState(() => selectedType = label),
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: isSelected ? color.withOpacity(0.2) : Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isSelected ? color : Colors.grey.shade300,
-                    width: 2,
-                  ),
-                ),
+      return GestureDetector(
+        onTap: () => setState(() => selectedType = label),
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withOpacity(0.2) : Colors.grey[100],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? color : Colors.grey.shade300,
+              width: 2,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: color, size: 28),
+              SizedBox(height: 5),
+              Text(label),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return showDialog<Map<String, String>>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(16),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(icon, color: color, size: 28),
+                    // TITLE
+                    Center(
+                      child: Column(
+                        children: [
+                          Text(
+                            "CONFIRM EMERGENCY",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            "Are you sure you want to send a report?",
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: 15),
+
+                    // TYPE TITLE
+                    Text(
+                      "Select type of emergency:",
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    SizedBox(height: 10),
+
+                    // GRID
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 2.5,
+                      physics: NeverScrollableScrollPhysics(),
+                      children: [
+                        buildTypeButton("Fire", Icons.local_fire_department, Colors.red, setState),
+                        buildTypeButton("Flood", Icons.water_drop, Colors.blue, setState),
+                        buildTypeButton("Medical", Icons.medical_services, Colors.green, setState),
+                        buildTypeButton("Other", Icons.error, Colors.black, setState),
+                      ],
+                    ),
+
+                    SizedBox(height: 10),
+
+                    // OTHER FIELD
+                    if (selectedType == "Other")
+                      TextField(
+                        controller: otherController,
+                        decoration: InputDecoration(
+                          hintText: "Please specify (optional)",
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+
+                    SizedBox(height: 10),
+
+                    // DESCRIPTION
+                    Text("Description"),
                     SizedBox(height: 5),
-                    Text(label),
+                    TextField(
+                      controller: descController,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        hintText: "Optional",
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: 15),
+
+                    // BUTTONS
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: Colors.grey[200],
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                            onPressed: () => Navigator.pop(context),
+                            child: Text("CANCEL"),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                            onPressed: () {
+                              if (selectedType == null) return;
+
+                              Navigator.pop(context, {
+                                "type": selectedType == "Other"
+                                    ? (otherController.text.isEmpty
+                                    ? "Other"
+                                    : otherController.text)
+                                    : selectedType!,
+                                "description": descController.text,
+                                "urgent": isUrgent.toString(),
+                              });
+                            },
+                            child: Text("SEND"),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             );
-        ),
-      },
-    return showDialog<Map<String, String>>(
-      context: context,
-      builder: (context){
-        return StatefulBuilder(
-            builder: (context, setState){
-              return AlertDialog(
-                title: Text("Confirm Emergency"),
-                content: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // type of emergency
-                      Text("Type of Emergency", style: TextStyle(fontWeight: FontWeight.bold)),
-                      RadioListTile(
-                        title: Text("Fire"),
-                        value: "Fire",
-                        groupValue: selectedType,
-                        onChanged: (val) => setState(() => selectedType = val),
-                      ),
-                      RadioListTile(
-                        title: Text("Flood"),
-                        value: "Flood",
-                        groupValue: selectedType,
-                        onChanged: (val) => setState(() => selectedType = val),
-                      ),
-                      RadioListTile(
-                        title: Text("Medical"),
-                        value: "Medical",
-                        groupValue: selectedType,
-                        onChanged: (val) => setState(() => selectedType = val),
-                      ),
-                      RadioListTile(
-                        title: Text("Other"),
-                        value: "Other",
-                        groupValue: selectedType,
-                        onChanged: (String? val) => setState(() => selectedType = val),
-                      ),
-
-                      // other input
-                      TextField(
-                        controller: otherController,
-                        enabled: selectedType == "Other",
-                        decoration: InputDecoration(
-                          hintText: "please specify (optional)",
-                        ),
-                      ),
-
-                      SizedBox(height: 16),
-
-                      // location details
-                      Text("Add Location Details", style: TextStyle(fontWeight: FontWeight.bold)),
-                      TextField(
-                        controller: locController,
-                        decoration: InputDecoration(
-                          hintText: "please specify (optional)",
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, null),
-                    child: Text("Cancel"),
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                    ),
-                    onPressed: () {
-                      if (selectedType == null) return;
-
-                      Navigator.pop(context, {
-                        "type": selectedType == "Other"
-                          ? otherController.text
-                          : selectedType!,
-                        "location": locController.text, // only what is typed in optional loc field
-                        "urgent": isUrgent.toString(),
-                      });
-                    },
-                    child: Text("Send"),
-                  ),
-                ],
-              );
-            },
+          },
         );
       },
     );
   }
 
   // signal sent
-  Future<void> _showSignalSent() async {
+  Future<void> _showSignalSent(Map<String, String> data) async {
+    bool isAssigned = false; // simulate state change
+
     await showDialog(
       context: context,
-      builder: (context) =>
-          AlertDialog(
-            title: Text("Signal Sent"),
-            content: Text("Your emergency alert has been sent to responders."),
-            actions: [
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text("OK"),
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            bool startedTimer = false;
+            // simulate responder assignment after 3 sec (testing only)
+
+            if (!startedTimer) {
+              startedTimer = true;
+
+              Future.delayed(Duration(seconds: 3), () {
+                if (context.mounted) {
+                  setState(() => isAssigned = true);
+                }
+              });
+            }
+
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
-            ],
-          ),
+              child: Container(
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+
+                    // 🔴 ICON
+                    CircleAvatar(
+                      radius: 45,
+                      backgroundColor: Colors.red,
+                      child: Icon(Icons.notifications, color: Colors.white, size: 40),
+                    ),
+
+                    SizedBox(height: 20),
+
+                    // TITLE
+                    Text(
+                      "EMERGENCY SIGNAL SENT",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+
+                    Text(
+                      isAssigned
+                          ? "Responders are en route!"
+                          : "Responders have been notified",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+
+                    SizedBox(height: 15),
+
+                    // STATUS CARD
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: isAssigned ? Colors.green : Colors.orange,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                isAssigned ? Icons.check_circle : Icons.hourglass_top,
+                                color: isAssigned ? Colors.green : Colors.orange,
+                                size: 18,
+                              ),
+                              SizedBox(width: 5),
+                              Text(
+                                isAssigned
+                                    ? "Responder has been assigned"
+                                    : "Waiting for acknowledgement...",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: 8),
+
+                          Text("Type: ${data["type"]}"),
+                          if (data["description"]!.isNotEmpty)
+                            Text("Description: ${data["description"]}"),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: 15),
+
+                    // COOLDOWN TEXT
+                    Text(
+                      "Next report available in 3 minutes",
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+
+                    SizedBox(height: 15),
+
+                    // BUTTON
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      child: Text("OK"),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
