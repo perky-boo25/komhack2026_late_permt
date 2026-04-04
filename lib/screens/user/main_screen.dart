@@ -31,8 +31,15 @@ class _MainScreenState extends State<MainScreen> {
         centerTitle: true,
         title: Row(
           mainAxisSize: MainAxisSize.min,
-          children: const [
-            Placeholder(fallbackHeight: 20, fallbackWidth: 20),
+          children:  [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6), // rounded logo
+              child: SizedBox(
+              width: 34,
+              height: 34,
+              child: Image.asset('images/logo.jpg', fit: BoxFit.cover), // app logo
+              ),
+            ),
             SizedBox(width: 10),
             Text(
               'Application Name',

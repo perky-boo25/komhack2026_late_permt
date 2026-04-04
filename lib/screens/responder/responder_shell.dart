@@ -44,15 +44,14 @@ class ResponderShellState extends State<ResponderShell> {
       title: Row(
         children: [
           // Logo placeholder – replace with Image.asset('assets/logo.png')
-          Container(
-            width: 32,
-            height: 32,
-            decoration: const BoxDecoration(
-              color: Color(0xFF1A1A2E),
-              shape: BoxShape.circle,
+          ClipRRect(
+              borderRadius: BorderRadius.circular(6), // rounded logo
+              child: SizedBox(
+              width: 34,
+              height: 34,
+              child: Image.asset('images/logo.jpg', fit: BoxFit.cover), // app logo
+              ),
             ),
-            child: const Icon(Icons.navigation, color: Colors.white, size: 18),
-          ),
           const SizedBox(width: 10),
           const Text(
             'Application Name',

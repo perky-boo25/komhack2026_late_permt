@@ -5,7 +5,6 @@ import 'firebase_options.dart';
 // import screens here (one file per screen)
 import 'screens/responder/responder_shell.dart';
 import 'screens/role_selector.dart';
-import 'screens/user/home_screen.dart';
 import 'screens/responder_login.dart';
 import 'screens/user/main_screen.dart';
 

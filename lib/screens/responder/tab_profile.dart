@@ -94,6 +94,7 @@ class ProfileTab extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () {
                 // TODO: Firebase sign-out + navigate to login screen
+                Navigator.pushReplacementNamed(context, '/responder-login');
               },
               icon: const Icon(Icons.logout, color: Colors.red),
               label: const Text(
