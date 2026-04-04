@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:komhack2026_late_permt/screens/responder/responder_shell.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 // import screens here (one file per screen)
 import 'screens/role_selector.dart';
-import 'screens/user/main_screen.dart';
+import 'screens/HomeScreen.dart';
+import 'screens/responder_login.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+
+  //initialization of firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  
   runApp(const MyApp());
 }
 
@@ -48,7 +57,7 @@ class MyApp extends StatelessWidget {
         // view reports
 
         // =============== R E S P O N D E R F L O W =====================
-        // '/responder-login': (context) => const ResponderLoginScreen(),
+        '/responder-login': (context) => const ResponderLogin(),
         // login screen
         '/responder-dashboard': (context) => const ResponderShell(),
         // map, incidents, tasks
