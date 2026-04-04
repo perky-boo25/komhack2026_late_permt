@@ -93,28 +93,14 @@ class _ResponderLoginState extends State<ResponderLogin> {
         password: password,
       );
       
-      /* go dashboard
-      TODO:Uncomment this later on
+      //go dashboard
+      //TODO:Uncomment this later on
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/responder-dashboard'); // next page
       }
-      */
+      
       //TODO: remove this later on
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('login successss finally'),
-            content: const Text('responder login is working. delete lang ja later hehe'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('ok'),
-              ),
-            ],
-          ),
-        );
-      }
+
     } on FirebaseAuthException catch (e) {
       setState(() {
         switch (e.code) {

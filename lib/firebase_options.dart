@@ -52,14 +52,14 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyApXBKZWFFMnS2EDLdpR6kpG8xTaQUgYvA',
-    appId: '1:894898304439:android:4ba44263a402f5c7c62432',
+    appId: '1:894898304439:android:7badc352be8727b6c62432',
     messagingSenderId: '894898304439',
     projectId: 'komhack26-late-permt',
     storageBucket: 'komhack26-late-permt.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBKZ8BQ7CnXHcdJwOPOWKt_QwldiC5MOY0',
+    apiKey: 'AIzaSyAXGW8CTNGmUy4nB8cPrOwoMU2o_sCnmzo',
     appId: '1:894898304439:ios:243760d4e9a714d9c62432',
     messagingSenderId: '894898304439',
     projectId: 'komhack26-late-permt',
