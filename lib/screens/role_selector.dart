@@ -153,7 +153,6 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   }
 }
 
-
 // logo widget
 class LogoWidget extends StatelessWidget {
   const LogoWidget({super.key});
