@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'my_reports_screen.dart';
+import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 const Color _kActiveColor = Color(0xFF000000);
 
@@ -18,9 +21,133 @@ class _MainScreenState extends State<MainScreen> {
   bool networkActive = false;
   bool isSafe = false;
 
-  final List<Widget> pages = const [
-    HomeScreen(), MyReportsScreen(),
-  ];
+  //TODO: replace later with actual logged-in na UID
+  final String userId = '00001';
+
+  //subscription for device connectivity changes
+  StreamSubscription<List<ConnectivityResult>>? _networkSub;
+
+  //
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _safeSub;
+
+  late final List<Widget> pages;
+
+  @override
+  void initState() {
+    super.initState();
+
+    pages = [
+      HomeScreen(
+        //send GPS status back to MainScreen
+        onGpsChanged: _updateGpsStatus,
+
+        //send detected barangay back to MainScreen
+        onBarangayDetected: _listenToAreaSafety,
+      ),
+      const MyReportsScreen(),
+    ];
+    _checkInitialNetworkStatus();
+    _listenToNetworkStatus();
+  }
+
+    //updates GPS chip and optionally saves it to Firestore
+  Future<void> _updateGpsStatus(bool active) async {
+    if (!mounted) return;
+
+    setState(() {
+      gpsActive = active;
+    });
+
+    try {
+      await FirebaseFirestore.instance.collection('status').doc(userId).set({
+        'gpsActive': active,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }catch(e){
+      //ignore error for now
+    }
+  }
+
+  // New: checks current network state once during startup
+  Future<void> _checkInitialNetworkStatus() async {
+    final result = await Connectivity().checkConnectivity();
+    final bool online = result != ConnectivityResult.none;
+
+    if (!mounted) return;
+
+    setState(() {
+      networkActive = online;
+    });
+
+    try {
+      await FirebaseFirestore.instance.collection('status').doc(userId).set({
+        'networkActive': online,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      // optional only; ignore Firestore write errors for now
+    }
+  }
+
+  // New: listens to actual device internet/network connectivity
+  void _listenToNetworkStatus() {
+    _networkSub = Connectivity().onConnectivityChanged.listen((result) async {
+      // Device is considered online if connectivity is not none
+      final bool online = result != ConnectivityResult.none;
+
+      if (!mounted) return;
+
+      setState(() {
+        networkActive = online;
+      });
+
+      try {
+        await FirebaseFirestore.instance.collection('status').doc(userId).set({
+          'networkActive': online,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      } catch (e) {
+        // optional only; ignore Firestore write errors for now
+      }
+    });
+  }
+
+    // New: listens to Firestore safety status of the detected barangay in real time
+  Future<void> _listenToAreaSafety(String barangay) async {
+    // cancel previous listener first so only one barangay listener is active
+    await _safeSub?.cancel();
+
+    // normalize barangay name for safer document ids
+    final normalizedBarangay = barangay.trim().toLowerCase().replaceAll(' ', '_');
+
+    try {
+      // optional: save the user's detected barangay
+      await FirebaseFirestore.instance.collection('status').doc(userId).set({
+        'barangay': normalizedBarangay,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      // optional only; ignore Firestore write errors for now
+    }
+
+    _safeSub = FirebaseFirestore.instance
+        .collection('areas')
+        .doc(normalizedBarangay)
+        .snapshots()
+        .listen((doc) {
+      final data = doc.data();
+
+      if (!mounted) return;
+
+      setState(() {
+        // if document does not exist yet, default to false for now
+        isSafe = data?['isSafe'] == true;
+      });
+    });
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {

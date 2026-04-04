@@ -216,7 +216,7 @@ class _MapTabState extends State<MapTab> {
             child: Row(
               children: [
                 const Text(
-                  'Live map Santa Barbara',
+                  'Live map',
                   style: TextStyle(
                       fontWeight: FontWeight.w600, fontSize: 13),
                 ),

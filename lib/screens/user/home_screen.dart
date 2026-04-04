@@ -12,7 +12,13 @@ import 'dart:ui' as ui;
 //       unify colors, fontstyle, fontsize
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final ValueChanged<bool>? onGpsChanged;
+  final ValueChanged<String>? onBarangayDetected;
+  const HomeScreen({
+    super.key,
+    this.onGpsChanged,
+    this.onBarangayDetected
+    });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -62,6 +68,9 @@ class _HomeScreenState extends State<HomeScreen> {
       // Check if location service is enabled
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
+        //tell MainScreen that GPS is not active/usable
+        widget.onGpsChanged?.call(false);
+
         setState(() {
           _locationLoading = false;
           _locationError = true;
@@ -89,11 +98,22 @@ class _HomeScreenState extends State<HomeScreen> {
         _streetLabel = address['street'] ?? '';
       });
 
+      //GPS/locataion successfully worked, so chip can turn green
+      widget.onGpsChanged?.call(true);
+
+      //sends barangay to MainScreen so it can listen to Firestore safety
+      final barangay = address['barangay'];
+      if (barangay !=null && barangay.trim().isNotEmpty){
+        widget.onBarangayDetected?.call(barangay);
+      }
+
       // Move map to current position
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _mapController.move(latlng, 16.0);
       });
     } catch (e) {
+      //tell mainscreen that gps isn't active/usable if something went wrong
+      widget.onGpsChanged?.call(false);
       setState(() {
         _locationLoading = false;
         _locationError = true;
