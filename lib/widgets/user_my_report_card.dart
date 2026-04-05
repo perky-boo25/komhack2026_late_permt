@@ -3,13 +3,13 @@
 import 'package:flutter/material.dart';
 import '../models/report_record.dart';
 
-class ReportRecordCard extends StatelessWidget {
+class UserMyReportCard extends StatelessWidget {
   final ReportRecord record;
   final IconData icon;
   final Color iconColor;
   final Color statusColor;
 
-  const ReportRecordCard({
+  const UserMyReportCard({
     super.key,
     required this.record,
     required this.icon,

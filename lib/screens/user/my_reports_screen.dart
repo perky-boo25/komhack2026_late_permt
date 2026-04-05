@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/report_record.dart';
+import '../../widgets/user_my_report_card.dart';
 
 class MyReportsScreen extends StatelessWidget {
   const MyReportsScreen({super.key});
@@ -74,74 +75,35 @@ class MyReportsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Sample data — swap for a real provider / Firestore stream later
-    final ongoingReports = [
-      const ReportRecord(
-        incidentId: '#2024-10536',
-        reportType: 'FIRE',
-        barangay: 'Brgy. Sample',
-        time: '2:30 PM',
-        status: 'PENDING',
-      ),
-      const ReportRecord(
-        incidentId: '#2024-10537',
-        reportType: 'FLOOD',
-        barangay: 'Brgy. Sample',
-        time: '3:15 PM',
-        status: 'IN PROGRESS',
-      ),
-    ];
+    // final ongoingReports = [
+    //   const ReportRecord(
+    //     incidentId: '#2024-10536',
+    //     reportType: 'FIRE',
+    //     barangay: 'Brgy. Sample',
+    //     time: '2:30 PM',
+    //     status: 'PENDING',
+    //   ),
+    //   const ReportRecord(
+    //     incidentId: '#2024-10537',
+    //     reportType: 'FLOOD',
+    //     barangay: 'Brgy. Sample',
+    //     time: '3:15 PM',
+    //     status: 'IN PROGRESS',
+    //   ),
+    // ];
 
-    final resolvedReports = [
-      const ReportRecord(
-        incidentId: '#2024-10501',
-        reportType: 'FIRE',
-        barangay: 'Brgy. Sample',
-        time: '1:10 PM',
-        status: 'RESOLVED',
-      ),
-    ];
+    // final resolvedReports = [
+    //   const ReportRecord(
+    //     incidentId: '#2024-10501',
+    //     reportType: 'FIRE',
+    //     barangay: 'Brgy. Sample',
+    //     time: '1:10 PM',
+    //     status: 'RESOLVED',
+    //   ),
+    // ];
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'My Reports',
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.3,
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          _SectionCard(
-            title: 'Ongoing Reports',
-            children: ongoingReports.map((r) => _buildCard(r)).toList(),
-          ),
-
-          const SizedBox(height: 16),
-
-          _SectionCard(
-            title: 'Resolved Reports',
-            children: resolvedReports.map((r) => _buildCard(r)).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCard(ReportRecord r) {
-    final normalizedStatus = _normalizeStatus(r.status);
-    return _ReportCard(
-      record: r,
-      icon: _iconForType(r.reportType),
-      iconColor: _iconColorForType(r.reportType),
-      iconBg: _iconBgForType(r.reportType),
-      statusColor: _statusColor(normalizedStatus),
-      normalizedStatus: normalizedStatus,
+    return const Center(
+      child: Text("Testing Firestore..."),
     );
   }
 }
@@ -218,7 +180,6 @@ class _ReportCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
-          // Icon circle
           Container(
             width: 44,
             height: 44,
@@ -231,7 +192,6 @@ class _ReportCard extends StatelessWidget {
 
           const SizedBox(width: 12),
 
-          // Text block
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,7 +220,6 @@ class _ReportCard extends StatelessWidget {
 
           const SizedBox(width: 8),
 
-          // Square-ish status badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
