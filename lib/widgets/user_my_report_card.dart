@@ -1,4 +1,5 @@
-//custom widget design for user
+//custom widget design for ui display
+//note: pwede mag create lang later responder_report_card then use same model
 
 import 'package:flutter/material.dart';
 import '../models/report_record.dart';
