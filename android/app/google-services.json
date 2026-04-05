@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "894898304439",
+    "project_id": "komhack26-late-permt",
+    "storage_bucket": "komhack26-late-permt.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:894898304439:android:4ba44263a402f5c7c62432",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApXBKZWFFMnS2EDLdpR6kpG8xTaQUgYvA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:894898304439:android:f8c815d4a01c4b98c62432",
+        "android_client_info": {
+          "package_name": "com.latepermt.alertph"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApXBKZWFFMnS2EDLdpR6kpG8xTaQUgYvA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:894898304439:android:7badc352be8727b6c62432",
+        "android_client_info": {
+          "package_name": "com.latepermt.komhack"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApXBKZWFFMnS2EDLdpR6kpG8xTaQUgYvA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
