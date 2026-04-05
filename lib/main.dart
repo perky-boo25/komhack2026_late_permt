@@ -12,9 +12,18 @@ void main() async{
   WidgetsFlutterBinding.ensureInitialized();
 
   //initialization of firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // await Firebase.initializeApp(
+  //   options: DefaultFirebaseOptions.currentPlatform,
+  // );
+
+  //removes duplicate app error (or tries too idk)
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp();
+    }
+  } catch (e) {
+    print("Firebase already initialized or error: $e");
+  }
   
   runApp(const MyApp());
 }
@@ -30,6 +39,8 @@ class MyApp extends StatelessWidget {
 
       // starting screen
       home: const RoleSelectionScreen(),
+      // home: const newAcctPage (),
+      //TEST
 
       // routes for navigation
       // use navigator.pushNamed(context, '/route-name');
