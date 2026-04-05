@@ -5,11 +5,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'dart:ui' as ui;
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-// TODO: add nav for switching from home to my reports and vice versa
-//       popups for hazards and emergency button click
-//       maybe the safe one could also update (?)
-//       unify colors, fontstyle, fontsize
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -352,23 +350,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // POP UP AND FUNCTIONS
   void _handleTap() async {
+    //   print("tap detected yey");
     final type = await _showSelection();
+    //   print("type $type");
     if (type == null) return;
 
     final confirmed = await _showConfirmDialog();
+    //   print("yis $confirmed");
     if (confirmed) {
+      await _saveReportToDatabase(type);
       await _showSignalSent();
-      // insert responder ui update here
     }
   }
 
   void _handleHold() async {
+    //   print("long press detected");
     final confirmed = await _showConfirmDialog();
+    //   print("noice $confirmed");
     if (confirmed) {
+      await _saveReportToDatabase('EMERGENCY');
       await _showSignalSent();
-      // insert responder ui update here
+
     }
   }
+
+
+
+
 
   Future<String?> _showSelection() async {
     return showDialog<String>(
@@ -428,6 +436,29 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  // STORING OF DATA TO FIRESTORE
+  Future<void> _saveReportToDatabase(String type) async {
+    //try {
+//      print("gumana sha");
+    await FirebaseFirestore.instance.collection('incidents').add({
+      'reportType': type,
+      'barangay': _locationLabel,
+      'street': _streetLabel,
+      'time': TimeOfDay.now().format(context),
+      'status': 'PENDING',
+      'specification': '',
+      'description': '',
+      'latitude': _currentLatLng?.latitude,
+      'longitude': _currentLatLng?.longitude,
+    });
+    //    print("galing gumana i2 ${docRef.id}");
+    // }
+    // catch (e) {
+    //     print("bakit ayaq n sau$e");
+    //     }
+
   }
 }
 
@@ -489,4 +520,6 @@ class _PinTailPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_PinTailPainter oldDelegate) => false;
+
+
 }
