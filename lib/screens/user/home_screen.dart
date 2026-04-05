@@ -452,6 +452,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'description': '',
       'latitude': _currentLatLng?.latitude,
       'longitude': _currentLatLng?.longitude,
+      'createdAt': FieldValue.serverTimestamp(),
     });
     //    print("galing gumana i2 ${docRef.id}");
     // }

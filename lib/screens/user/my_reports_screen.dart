@@ -61,8 +61,10 @@ class MyReportsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('incidents').snapshots(),
-      builder: (context, snapshot) {
+      stream: FirebaseFirestore.instance
+          .collection('incidents')
+          .orderBy('createdAt', descending: true)
+          .snapshots(),      builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
             child: CircularProgressIndicator(),
@@ -71,7 +73,7 @@ class MyReportsScreen extends StatelessWidget {
 
         if (snapshot.hasError) {
           return const Center(
-            child: Text('Something went wrong while loading reports.'),
+            child: Text('Error in loading reports.'),
           );
         }
 
@@ -115,7 +117,7 @@ class MyReportsScreen extends StatelessWidget {
                     ? [
                   const Padding(
                     padding: EdgeInsets.all(16),
-                    child: Text('No ongoing reports yet.'),
+                    child: Text('Nothing to show here.'),
                   ),
                 ]
                     : ongoingReports.map((r) {
