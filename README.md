@@ -84,7 +84,7 @@ Prerequisites
 
 Steps
 - Download the APK file
-- Obtain the latest awSOS.apk from the repository.
+- Obtain the latest awSOS.apk from the GDrive folder linked above.
 - Enable Unknown Sources
 - Go to Settings > Security
 - Enable “Install unknown apps” or “Allow from this source” for your browser or file manager
