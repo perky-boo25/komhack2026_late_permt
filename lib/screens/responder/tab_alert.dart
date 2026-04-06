@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -138,7 +140,7 @@ class _AlertTabState extends State<AlertTab> {
 
 // ── Full assigned-incident view ───────────────────────────────────────────────
 
-class _AssignedIncidentView extends StatelessWidget {
+class _AssignedIncidentView extends StatefulWidget {
   final Map<String, dynamic> alert;
   final String alertType;
   final VoidCallback onResolve;
@@ -149,10 +151,62 @@ class _AssignedIncidentView extends StatelessWidget {
     required this.onResolve,
   });
 
+  @override
+  State<_AssignedIncidentView> createState() => _AssignedIncidentViewState();
+}
+
+class _AssignedIncidentViewState extends State<_AssignedIncidentView> {
+  // Fetched once from Firestore — same pattern as ProfileTab
+  String _initials   = '';
+  String _unit       = '';
+  String _department = '';
+  bool   _loaded     = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadResponderInfo();
+  }
+
+  /// Queries `responders` collection by the logged-in user's UID,
+  /// exactly the same way ProfileTab does.
+  Future<void> _loadResponderInfo() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final query = await FirebaseFirestore.instance
+        .collection('responders')
+        .where('uid', isEqualTo: user.uid)
+        .limit(1)
+        .get();
+
+    if (!mounted || query.docs.isEmpty) return;
+
+    final data = query.docs.first.data();
+    final name       = (data['name']        as String? ?? '').trim();
+    final unit       = (data['responderId'] as String? ?? '').trim();
+    final department = (data['department']  as String? ?? '').trim();
+
+    // Derive two-letter initials — same helper logic as ProfileTab
+    final parts = name.split(' ').where((p) => p.isNotEmpty).toList();
+    final initials = parts.length >= 2
+        ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
+        : parts.isNotEmpty
+            ? parts[0][0].toUpperCase()
+            : '?';
+
+    setState(() {
+      _initials   = initials;
+      _unit       = unit;
+      _department = department;
+      _loaded     = true;
+    });
+  }
+
   // ── Type helpers ─────────────────────────────────────────────────────────
 
   IconData get _icon {
-    switch (alertType) {
+    switch (widget.alertType) {
       case 'fire':      return Icons.local_fire_department;
       case 'flood':     return Icons.water_drop;
       case 'emergency': return Icons.emergency;
@@ -162,7 +216,7 @@ class _AssignedIncidentView extends StatelessWidget {
   }
 
   Color get _color {
-    switch (alertType) {
+    switch (widget.alertType) {
       case 'fire':      return Colors.orange;
       case 'flood':     return Colors.blue;
       case 'emergency': return Colors.red;
@@ -172,7 +226,7 @@ class _AssignedIncidentView extends StatelessWidget {
   }
 
   String get _title {
-    switch (alertType) {
+    switch (widget.alertType) {
       case 'fire':      return 'Fire Alert';
       case 'flood':     return 'Flood Alert';
       case 'emergency': return 'Emergency Alert';
@@ -184,19 +238,19 @@ class _AssignedIncidentView extends StatelessWidget {
   // ── Safe field reads ──────────────────────────────────────────────────────
 
   String get _time {
-    final t = alert['time'];
+    final t = widget.alert['time'];
     if (t is String && t.isNotEmpty) return t;
     return '–';
   }
 
   String get _description {
-    final d = alert['description'];
+    final d = widget.alert['description'];
     if (d is String && d.isNotEmpty) return d;
     return 'No description provided.';
   }
 
   String get _specification {
-    final s = alert['specification'];
+    final s = widget.alert['specification'];
     if (s is String && s.isNotEmpty) return s;
     return '–';
   }
@@ -205,16 +259,13 @@ class _AssignedIncidentView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final alert = widget.alert;
     final double lat = (alert['lat'] as num).toDouble();
     final double lng = (alert['lng'] as num).toDouble();
     final alertPoint = LatLng(lat, lng);
 
-    // ── Pull real responder info from AppState ──────────────────────────────
-    final String initials   = AppState.responderInitials;
-    final String unit       = AppState.responderUnit;
-    final String department = AppState.responderDepartment;
     final String responderLabel =
-        [unit, department].where((s) => s.isNotEmpty).join(' • ');
+        [_unit, _department].where((s) => s.isNotEmpty).join(' • ');
 
     return Column(
       children: [
@@ -423,7 +474,7 @@ class _AssignedIncidentView extends StatelessWidget {
                                         color: Colors.green.shade300),
                                   ),
                                   child: Text(
-                                    initials.isNotEmpty ? initials : '?',
+                                    _initials.isNotEmpty ? _initials : '?',
                                     style: TextStyle(
                                       fontSize: 10,
                                       color: Colors.green.shade700,
@@ -492,7 +543,7 @@ class _AssignedIncidentView extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: onResolve,
+                  onPressed: widget.onResolve,
                   icon: const Icon(Icons.verified_outlined,
                       color: Colors.white, size: 20),
                   label: const Text(
