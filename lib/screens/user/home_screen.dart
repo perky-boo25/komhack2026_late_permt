@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -10,7 +11,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final ValueChanged<bool>? onGpsChanged;
+  final ValueChanged<String>? onBarangayDetected;
+  const HomeScreen({
+    super.key,
+    this.onGpsChanged,
+    this.onBarangayDetected
+    });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -49,6 +56,8 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       if (permission == LocationPermission.deniedForever ||
           permission == LocationPermission.denied) {
+            //GPS is not active nor usable
+            widget.onGpsChanged?.call(false);
         setState(() {
           _locationLoading = false;
           _locationError = true;
@@ -60,6 +69,9 @@ class _HomeScreenState extends State<HomeScreen> {
       // Check if location service is enabled
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
+        //tell MainScreen that GPS is not active/usable
+        widget.onGpsChanged?.call(false);
+
         setState(() {
           _locationLoading = false;
           _locationError = true;
@@ -87,11 +99,22 @@ class _HomeScreenState extends State<HomeScreen> {
         _streetLabel = address['street'] ?? '';
       });
 
+      //GPS/locataion successfully worked, so chip can turn green
+      widget.onGpsChanged?.call(true);
+
+      //sends barangay to MainScreen so it can listen to Firestore safety
+      final barangay = address['barangay'];
+      if (barangay !=null && barangay.trim().isNotEmpty){
+        widget.onBarangayDetected?.call(barangay);
+      }
+
       // Move map to current position
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _mapController.move(latlng, 16.0);
       });
     } catch (e) {
+      //tell mainscreen that gps isn't active/usable if something went wrong
+      widget.onGpsChanged?.call(false);
       setState(() {
         _locationLoading = false;
         _locationError = true;
@@ -360,8 +383,21 @@ class _HomeScreenState extends State<HomeScreen> {
     if (confirmed) {
       await _saveReportToDatabase(type);
       await _showSignalSent();
+      // insert responder ui update here
+      // TODO: replace this with real Firestore incident submission
+      // Example real code later:
+      // await FirebaseFirestore.instance.collection('incidents').add({
+      //   'incidentId': generatedId,
+      //   'createdBy': currentUserId,
+      //   'emergencyType': type,
+      //   'barangay': normalizedBarangay,
+      //   'status': 'pending',
+      //   'createdAt': FieldValue.serverTimestamp(),
+      // });
     }
   }
+
+
 
   void _handleHold() async {
     //   print("long press detected");
@@ -370,7 +406,17 @@ class _HomeScreenState extends State<HomeScreen> {
     if (confirmed) {
       await _saveReportToDatabase('EMERGENCY');
       await _showSignalSent();
-
+      // insert responder ui update here
+      // TODO: replace this with real Firestore emergency signal submission
+      // Example real code later:
+      // await FirebaseFirestore.instance.collection('incidents').add({
+      //   'incidentId': generatedId,
+      //   'createdBy': currentUserId,
+      //   'emergencyType': 'Emergency',
+      //   'barangay': normalizedBarangay,
+      //   'status': 'pending',
+      //   'createdAt': FieldValue.serverTimestamp(),
+      // });
     }
   }
 

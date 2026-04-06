@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'my_reports_screen.dart';
+import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 const Color _kActiveColor = Color(0xFF000000);
 
@@ -18,9 +21,148 @@ class _MainScreenState extends State<MainScreen> {
   bool networkActive = false;
   bool isSafe = false;
 
-  final List<Widget> pages = const [
-    HomeScreen(), MyReportsScreen(),
-  ];
+  //TODO: replace later with actual logged-in na UID
+  final String userId = '2026-12345';
+
+  //for device connectivity changes
+  StreamSubscription<List<ConnectivityResult>>? _networkSub;
+
+  // listens to incidents and computes safety automatically
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _safetySub;
+
+  late final List<Widget> pages;
+
+  @override
+  void initState() {
+    super.initState();
+
+    pages = [
+      HomeScreen(
+        //send GPS status back to MainScreen
+        onGpsChanged: _updateGpsStatus,
+
+        //send detected barangay back to MainScreen
+        onBarangayDetected: _listenToAreaSafety,
+      ),
+      const MyReportsScreen(),
+    ];
+    _checkInitialNetworkStatus();
+    _listenToNetworkStatus();
+  }
+
+    //updates GPS chip and optionally saves it to Firestore
+  Future<void> _updateGpsStatus(bool active) async {
+    if (!mounted) return;
+
+    setState(() {
+      gpsActive = active;
+    });
+
+    try {
+      await FirebaseFirestore.instance.collection('status').doc(userId).set({
+        'gpsActive': active,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }catch(e){
+      //ignore error for now
+    }
+  }
+
+  // checks current network state once during startup
+  Future<void> _checkInitialNetworkStatus() async {
+    final result = await Connectivity().checkConnectivity();
+    final bool online = result != ConnectivityResult.none;
+
+    if (!mounted) return;
+
+    setState(() {
+      networkActive = online;
+    });
+
+    try {
+      await FirebaseFirestore.instance.collection('status').doc(userId).set({
+        'networkActive': online,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      // optional only; ignore Firestore write errors for now
+    }
+  }
+
+  // listens to actual device internet/network connectivity
+  void _listenToNetworkStatus() {
+    _networkSub = Connectivity().onConnectivityChanged.listen((result) async {
+      // Device is considered online if connectivity is not none
+      final bool online = result != ConnectivityResult.none;
+
+      if (!mounted) return;
+
+      setState(() {
+        networkActive = online;
+      });
+
+      try {
+        await FirebaseFirestore.instance.collection('status').doc(userId).set({
+          'networkActive': online,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      } catch (e) {
+        // optional only; ignore Firestore write errors for now
+      }
+    });
+  }
+
+  //to match firestore values
+  String _normalizedBarangay(String input) {
+    return input
+    .trim()
+    .toLowerCase()
+    .replaceAll(RegExp(r'[^a-z0-9]'), '_')
+    .replaceAll(RegExp(r'_+'), '_')
+    .replaceAll(RegExp(r'^_|_$'), '');
+  }
+
+    //listens to Firestore safety status of the detected barangay in real time
+  Future<void> _listenToAreaSafety(String barangay) async {
+    // cancel previous listener first so only one barangay listener is active
+    await _safetySub?.cancel();
+
+    // normalize barangay name for safer document ids
+    final normalizedBarangay = _normalizedBarangay(barangay);
+
+    try {
+      // optional: save the user's detected barangay
+      await FirebaseFirestore.instance.collection('status').doc(userId).set({
+        'barangay': normalizedBarangay,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      // optional only; ignore Firestore write errors for now
+    }
+
+    _safetySub = FirebaseFirestore.instance
+        .collection('incidents')
+        .where('barangay', isEqualTo: normalizedBarangay)
+        .where('status', whereIn: ['pending', 'in_progress'])
+        .snapshots()
+        .listen((snapshot) {
+      print("Docs found: ${snapshot.docs.length}");
+
+      if (!mounted) return;
+
+      setState(() {
+        // if document does not exist yet, default to false for now
+        isSafe = snapshot.docs.isEmpty;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _networkSub?.cancel();
+    _safetySub?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
