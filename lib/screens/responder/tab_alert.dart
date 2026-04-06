@@ -209,6 +209,13 @@ class _AssignedIncidentView extends StatelessWidget {
     final double lng = (alert['lng'] as num).toDouble();
     final alertPoint = LatLng(lat, lng);
 
+    // ── Pull real responder info from AppState ──────────────────────────────
+    final String initials   = AppState.responderInitials;
+    final String unit       = AppState.responderUnit;
+    final String department = AppState.responderDepartment;
+    final String responderLabel =
+        [unit, department].where((s) => s.isNotEmpty).join(' • ');
+
     return Column(
       children: [
         // ── Header ──────────────────────────────────────────────────────────
@@ -403,6 +410,7 @@ class _AssignedIncidentView extends StatelessWidget {
                             const SizedBox(height: 6),
                             Row(
                               children: [
+                                // Initials badge — real logged-in responder
                                 Container(
                                   padding:
                                       const EdgeInsets.symmetric(
@@ -415,7 +423,7 @@ class _AssignedIncidentView extends StatelessWidget {
                                         color: Colors.green.shade300),
                                   ),
                                   child: Text(
-                                    'UI',
+                                    initials.isNotEmpty ? initials : '?',
                                     style: TextStyle(
                                       fontSize: 10,
                                       color: Colors.green.shade700,
@@ -424,10 +432,12 @@ class _AssignedIncidentView extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                const Expanded(
+                                Expanded(
                                   child: Text(
-                                    'UNIT 01 • Fire Truck dispatched',
-                                    style: TextStyle(
+                                    responderLabel.isNotEmpty
+                                        ? responderLabel
+                                        : 'Responder assigned',
+                                    style: const TextStyle(
                                         fontSize: 12,
                                         color: Colors.black54),
                                   ),

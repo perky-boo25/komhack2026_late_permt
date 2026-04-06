@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'alert_data.dart';
+import 'responder_shell.dart'; // gives access to AppState
 
 // ── IncidentDetailPopup ───────────────────────────────────────────────────────
 //
@@ -318,7 +319,6 @@ class IncidentDetailScreen extends StatelessWidget {
       height: 180,
       child: Stack(
         children: [
-          // Non-interactive OSM map centred on the incident
           IgnorePointer(
             child: FlutterMap(
               options: MapOptions(
@@ -361,7 +361,6 @@ class IncidentDetailScreen extends StatelessWidget {
               ],
             ),
           ),
-          // Coordinates label
           Positioned(
             bottom: 6,
             left: 0,
@@ -440,6 +439,14 @@ class IncidentDetailScreen extends StatelessWidget {
             ? alertDescription!
             : 'No description provided.';
 
+    // ── Pull real responder info from AppState ──────────────────────────────
+    final String initials   = AppState.responderInitials;
+    final String unit       = AppState.responderUnit;
+    final String department = AppState.responderDepartment;
+    // Build the label shown next to the badge, e.g. "UNIT 03 • Fire Department"
+    final String responderLabel =
+        [unit, department].where((s) => s.isNotEmpty).join(' • ');
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -497,7 +504,7 @@ class IncidentDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Responder/s assigned box
+          // ── Responder/s assigned box ────────────────────────────────────
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(12),
@@ -521,6 +528,7 @@ class IncidentDetailScreen extends StatelessWidget {
                 if (isAccepted || isResolved)
                   Row(
                     children: [
+                      // Initials badge — uses real logged-in responder initials
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
@@ -528,20 +536,23 @@ class IncidentDetailScreen extends StatelessWidget {
                           color: Colors.blue.shade100,
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
-                          'U1',
+                        child: Text(
+                          initials.isNotEmpty ? initials : '?',
                           style: TextStyle(
                             fontSize: 10,
-                            color: Colors.blue,
+                            color: Colors.blue.shade800,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                       const SizedBox(width: 6),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'UNIT 01 • Fire Truck dispatched',
-                          style: TextStyle(fontSize: 12, color: Colors.black54),
+                          responderLabel.isNotEmpty
+                              ? responderLabel
+                              : 'Responder assigned',
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.black54),
                         ),
                       ),
                     ],

@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -7,168 +10,439 @@ import 'package:latlong2/latlong.dart';
 import 'dart:ui' as ui;
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────────────────────────────────────
 
+const Duration _kCooldown     = Duration(minutes: 3);
+const Duration _kHoldDuration = Duration(seconds: 3);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HomeScreen widget
+// ─────────────────────────────────────────────────────────────────────────────
 
 class HomeScreen extends StatefulWidget {
-  final ValueChanged<bool>? onGpsChanged;
+  final ValueChanged<bool>?   onGpsChanged;
   final ValueChanged<String>? onBarangayDetected;
+
   const HomeScreen({
     super.key,
     this.onGpsChanged,
-    this.onBarangayDetected
-    });
+    this.onBarangayDetected,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  // --- Location State ---
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+
+  // ── Location ───────────────────────────────────────────────────────────────
   LatLng? _currentLatLng;
-  String _locationLabel = 'Detecting location...';
-  String _streetLabel = '';
-  bool _locationLoading = true;
-  bool _locationError = false;
+  String  _locationLabel   = 'Detecting location...';
+  String  _streetLabel     = '';
+  bool    _locationLoading = true;
+  bool    _locationError   = false;
 
   final MapController _mapController = MapController();
+
+  // ── SOS hold animation ─────────────────────────────────────────────────────
+  AnimationController? _progressController;
+  bool _controllersReady = false;
+  bool _isHolding        = false;
+  bool _sosTriggered     = false;
+
+  // ── Cooldown ───────────────────────────────────────────────────────────────
+  Timer? _cooldownTimer;
+  int    _cooldownSecondsLeft = 0;
+
+  bool   get _isCoolingDown => _cooldownSecondsLeft > 0;
+
+  String get _cooldownLabel {
+    final m = _cooldownSecondsLeft ~/ 60;
+    final s = _cooldownSecondsLeft % 60;
+    return '${m}m ${s.toString().padLeft(2, '0')}s';
+  }
+
+  // ── Lifecycle ──────────────────────────────────────────────────────────────
 
   @override
   void initState() {
     super.initState();
+    _progressController =
+        AnimationController(vsync: this, duration: _kHoldDuration)
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed && !_sosTriggered) {
+              _sosTriggered = true;
+              _onHoldComplete();
+            }
+          });
+    _controllersReady = true;
     _fetchLocation();
   }
 
-  // --- GEOLOCATION ---
+  @override
+  void dispose() {
+    _progressController?.dispose();
+    _cooldownTimer?.cancel();
+    super.dispose();
+  }
+
+  // ── Cooldown ───────────────────────────────────────────────────────────────
+
+  void _startCooldown() {
+    _cooldownSecondsLeft = _kCooldown.inSeconds;
+    _cooldownTimer?.cancel();
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return;
+      setState(() {
+        _cooldownSecondsLeft--;
+        if (_cooldownSecondsLeft <= 0) {
+          _cooldownSecondsLeft = 0;
+          t.cancel();
+        }
+      });
+    });
+  }
+
+  // ── SOS hold helpers ───────────────────────────────────────────────────────
+
+  void _startHold() {
+    if (_isHolding || !_controllersReady || _isCoolingDown) return;
+    setState(() {
+      _isHolding    = true;
+      _sosTriggered = false;
+    });
+    HapticFeedback.mediumImpact();
+    _progressController!.forward(from: 0);
+  }
+
+  void _cancelHold() {
+    if (!_isHolding || !_controllersReady) return;
+    _progressController!.stop();
+    _progressController!.reset();
+    setState(() => _isHolding = false);
+  }
+
+  void _onHoldComplete() {
+    if (!_controllersReady) return;
+    HapticFeedback.heavyImpact();
+    _progressController!.reset();
+    setState(() => _isHolding = false);
+    _handleHold();
+  }
+
+  // ── Geolocation ────────────────────────────────────────────────────────────
+
   Future<void> _fetchLocation() async {
     setState(() {
       _locationLoading = true;
-      _locationError = false;
-      _locationLabel = 'Detecting location...';
-      _streetLabel = '';
+      _locationError   = false;
+      _locationLabel   = 'Detecting location...';
+      _streetLabel     = '';
     });
 
     try {
-      // Check and request permission
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
+      LocationPermission perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
       }
-      if (permission == LocationPermission.deniedForever ||
-          permission == LocationPermission.denied) {
-            //GPS is not active nor usable
-            widget.onGpsChanged?.call(false);
+      if (perm == LocationPermission.denied ||
+          perm == LocationPermission.deniedForever) {
+        widget.onGpsChanged?.call(false);
         setState(() {
           _locationLoading = false;
-          _locationError = true;
-          _locationLabel = 'Location permission denied.';
+          _locationError   = true;
+          _locationLabel   = 'Location permission denied.';
         });
         return;
       }
 
-      // Check if location service is enabled
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        //tell MainScreen that GPS is not active/usable
         widget.onGpsChanged?.call(false);
-
         setState(() {
           _locationLoading = false;
-          _locationError = true;
-          _locationLabel = 'Location services are disabled.';
+          _locationError   = true;
+          _locationLabel   = 'Location services are disabled.';
         });
         return;
       }
 
-      // Get current position
-      final Position position = await Geolocator.getCurrentPosition(
+      final Position pos = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-
-      final latlng = LatLng(position.latitude, position.longitude);
-
-      // Reverse geocode using Nominatim (OpenStreetMap)
-      final address =
-          await _reverseGeocode(position.latitude, position.longitude);
+      final latlng  = LatLng(pos.latitude, pos.longitude);
+      final address = await _reverseGeocode(pos.latitude, pos.longitude);
 
       setState(() {
-        _currentLatLng = latlng;
+        _currentLatLng   = latlng;
         _locationLoading = false;
-        _locationError = false;
-        _locationLabel = address['barangay'] ?? 'Unknown Barangay';
-        _streetLabel = address['street'] ?? '';
+        _locationError   = false;
+        _locationLabel   = address['barangay'] ?? 'Unknown Barangay';
+        _streetLabel     = address['street']   ?? '';
       });
 
-      //GPS/locataion successfully worked, so chip can turn green
       widget.onGpsChanged?.call(true);
 
-      //sends barangay to MainScreen so it can listen to Firestore safety
-      final barangay = address['barangay'];
-      if (barangay !=null && barangay.trim().isNotEmpty){
-        widget.onBarangayDetected?.call(barangay);
+      final brgy = address['barangay'];
+      if (brgy != null && brgy.trim().isNotEmpty) {
+        widget.onBarangayDetected?.call(brgy);
       }
 
-      // Move map to current position
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((d) {
         _mapController.move(latlng, 16.0);
       });
     } catch (e) {
-      //tell mainscreen that gps isn't active/usable if something went wrong
       widget.onGpsChanged?.call(false);
       setState(() {
         _locationLoading = false;
-        _locationError = true;
-        _locationLabel = 'Could not detect location.';
+        _locationError   = true;
+        _locationLabel   = 'Could not detect location.';
       });
     }
   }
 
-  // --- REVERSE GEOCODING via Nominatim ---
-  // Returns only 'street' and 'barangay' fields.
   Future<Map<String, String?>> _reverseGeocode(double lat, double lon) async {
     try {
       final uri = Uri.parse(
         'https://nominatim.openstreetmap.org/reverse'
         '?format=json&lat=$lat&lon=$lon&zoom=18&addressdetails=1',
       );
-      final response = await http.get(
-        uri,
-        headers: {'User-Agent': 'EmergencyApp/1.0'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+      final resp = await http.get(uri, headers: {'User-Agent': 'EmergencyApp/1.0'});
+      if (resp.statusCode == 200) {
+        final data = jsonDecode(resp.body);
         final addr = data['address'] as Map<String, dynamic>?;
-
         if (addr != null) {
-          // Barangay — Philippine admin structure
-          final barangay = addr['village'] ??
-              addr['suburb'] ??
-              addr['quarter'] ??
-              addr['neighbourhood'] ??
-              addr['city_district'] ??
-              addr['county'] ??
-              addr['city'] ??
-              'Unknown Barangay';
-
-          // Street name only
-          final street = addr['road'] ??
-              addr['pedestrian'] ??
-              addr['footway'] ??
-              addr['path'] ??
-              '';
-
+          final barangay = addr['village']       ??
+                           addr['suburb']        ??
+                           addr['quarter']       ??
+                           addr['neighbourhood'] ??
+                           addr['city_district'] ??
+                           addr['county']        ??
+                           addr['city']          ??
+                           'Unknown Barangay';
+          final street = addr['road']       ??
+                         addr['pedestrian'] ??
+                         addr['footway']    ??
+                         addr['path']       ??
+                         '';
           return {'barangay': barangay, 'street': street};
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      // ignore
+    }
     return {'barangay': null, 'street': null};
   }
 
-  // --- MAP WIDGET ---
-  // Full-width, no rounded corners.
+  // ── Firestore ──────────────────────────────────────────────────────────────
+
+  Future<DocumentReference?> _saveReport({
+    required String type,
+    String specification = '',
+    String description   = '',
+  }) async {
+    try {
+      return await FirebaseFirestore.instance.collection('incidents').add({
+        'reportType':    type,
+        'barangay':      _locationLabel,
+        'street':        _streetLabel,
+        'time':          TimeOfDay.now().format(context),
+        'status':        'PENDING',
+        'specification': specification,
+        'description':   description,
+        'latitude':      _currentLatLng?.latitude,
+        'longitude':     _currentLatLng?.longitude,
+        'responders':    [],
+        'createdAt':     FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // ── Dialog flow — TAP ──────────────────────────────────────────────────────
+
+  Future<void> _handleTap() async {
+    if (_isCoolingDown) return;
+
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const _EmergencyTypeDialog(),
+    );
+    if (result == null || !mounted) return;
+
+    final docRef = await _saveReport(
+      type:          result['type']!,
+      specification: result['specification'] ?? '',
+      description:   result['description']   ?? '',
+    );
+    if (docRef == null || !mounted) return;
+
+    _startCooldown();
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => _SignalSentDialog(
+        incidentId:    docRef.id,
+        emergencyType: result['type']!,
+        getCooldown:   () => _cooldownSecondsLeft,
+      ),
+    );
+  }
+
+  // ── Dialog flow — HOLD ─────────────────────────────────────────────────────
+
+  Future<void> _handleHold() async {
+    if (_isCoolingDown) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const _HoldConfirmDialog(),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final docRef = await _saveReport(type: 'EMERGENCY');
+    if (docRef == null || !mounted) return;
+
+    _startCooldown();
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => _SignalSentDialog(
+        incidentId:    docRef.id,
+        emergencyType: 'EMERGENCY',
+        getCooldown:   () => _cooldownSecondsLeft,
+      ),
+    );
+  }
+
+  // ── Build ──────────────────────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: Colors.white,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildMap(),
+            _buildLocationLabel(),
+            const SizedBox(height: 36),
+
+            // ── SOS button ─────────────────────────────────────────────────
+            if (!_controllersReady)
+              const SizedBox(width: 216, height: 216)
+            else
+              AnimatedBuilder(
+                animation: _progressController!,
+                builder: (context, child) {
+                  final progress = _progressController!.value;
+                  final disabled = _isCoolingDown;
+                  final btnColor = disabled ? Colors.grey : Colors.red;
+
+                  return GestureDetector(
+                    onLongPressStart:  disabled ? null : (d) => _startHold(),
+                    onLongPressEnd:    (d) => _cancelHold(),
+                    onLongPressCancel: () => _cancelHold(),
+                    onTap: (_isHolding || disabled) ? null : _handleTap,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SizedBox(
+                          width: 216, height: 216,
+                          child: CustomPaint(
+                            painter: _ArcPainter(
+                              progress:    progress,
+                              color:       btnColor,
+                              trackColor:  btnColor.withOpacity(0.15),
+                              strokeWidth: 4,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          width: 200, height: 200,
+                          decoration: BoxDecoration(
+                            color: btnColor,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color:        btnColor.withOpacity(0.55),
+                                blurRadius:   30,
+                                spreadRadius: 6,
+                                offset:       const Offset(0, 16),
+                              ),
+                              BoxShadow(
+                                color:        Colors.black.withOpacity(0.18),
+                                blurRadius:   12,
+                                spreadRadius: 2,
+                                offset:       const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.notifications,
+                              color: Colors.white,
+                              size: 80,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+
+            const SizedBox(height: 28),
+
+            // ── Hint / cooldown label ──────────────────────────────────────
+            if (_isCoolingDown)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  'Next report available in: $_cooldownLabel',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.redAccent,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              )
+            else ...[
+              const Text(
+                'Hold to send an emergency signal',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Text(
+                'Tap 1 time to report an incident',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.black54, fontSize: 14),
+              ),
+            ],
+
+            const SizedBox(height: 30),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Map ────────────────────────────────────────────────────────────────────
+
   Widget _buildMap() {
     final center = _currentLatLng ?? const LatLng(10.6770, 122.9511);
-
     return SizedBox(
       width: double.infinity,
       height: 270,
@@ -181,39 +455,33 @@ class _HomeScreenState extends State<HomeScreen> {
               initialZoom: _currentLatLng != null ? 16.0 : 6.0,
               interactionOptions: const InteractionOptions(
                 flags: InteractiveFlag.pinchZoom |
-                    InteractiveFlag.drag |
-                    InteractiveFlag.doubleTapZoom,
+                       InteractiveFlag.drag      |
+                       InteractiveFlag.doubleTapZoom,
               ),
             ),
             children: [
-              // OpenStreetMap tile layer
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.emergencyapp',
               ),
-              // Pin marker
               if (_currentLatLng != null)
                 MarkerLayer(
                   markers: [
                     Marker(
-                      point: _currentLatLng!,
-                      width: 48,
+                      point:  _currentLatLng!,
+                      width:  48,
                       height: 56,
-                      child: const _PinMarker(),
+                      child:  const _PinMarker(),
                     ),
                   ],
                 ),
             ],
           ),
-
-          // Loading overlay on map
           if (_locationLoading)
             Positioned.fill(
               child: Container(
                 color: Colors.white.withOpacity(0.4),
-                child: const Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: const Center(child: CircularProgressIndicator()),
               ),
             ),
         ],
@@ -221,8 +489,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // --- LOCATION LABEL ---
-  // Shows "Street, Barangay" below the map.
+  // ── Location label ─────────────────────────────────────────────────────────
+
   Widget _buildLocationLabel() {
     if (_locationLoading) {
       return const Padding(
@@ -231,8 +499,7 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
-              width: 14,
-              height: 14,
+              width: 14, height: 14,
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
             SizedBox(width: 8),
@@ -245,11 +512,10 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Build "Street, Barangay" or just "Barangay" if no street
     final displayText = _locationError
         ? _locationLabel
         : [
-            if (_streetLabel.isNotEmpty) _streetLabel,
+            if (_streetLabel.isNotEmpty)   _streetLabel,
             if (_locationLabel.isNotEmpty) _locationLabel,
           ].join(', ');
 
@@ -282,233 +548,672 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: 4),
           GestureDetector(
             onTap: _fetchLocation,
-            child: const Icon(
-              Icons.refresh,
-              size: 16,
-              color: Colors.blueGrey,
-            ),
+            child: const Icon(Icons.refresh, size: 16, color: Colors.blueGrey),
           ),
         ],
       ),
     );
   }
+}
 
-  // UI
+// ─────────────────────────────────────────────────────────────────────────────
+// _EmergencyTypeDialog  (tap flow)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _EmergencyTypeDialog extends StatefulWidget {
+  const _EmergencyTypeDialog();
+
+  @override
+  State<_EmergencyTypeDialog> createState() => _EmergencyTypeDialogState();
+}
+
+class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
+
+  String? _selectedType;
+  final TextEditingController _specCtrl = TextEditingController();
+  final TextEditingController _descCtrl = TextEditingController();
+
+  static const List<Map<String, Object>> _types = [
+    {'label': 'Fire',    'icon': Icons.local_fire_department, 'color': Color(0xFFFF6B35)},
+    {'label': 'Flood',   'icon': Icons.water_drop,            'color': Color(0xFF29B6F6)},
+    {'label': 'Medical', 'icon': Icons.medical_services,      'color': Color(0xFF43A047)},
+    {'label': 'Other',   'icon': Icons.report_sharp,          'color': Color(0xFF000000)},
+  ];
+
+  @override
+  void dispose() {
+    _specCtrl.dispose();
+    _descCtrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    Navigator.of(context).pop(<String, String>{
+      'type':          _selectedType!,
+      'specification': _specCtrl.text.trim(),
+      'description':   _descCtrl.text.trim(),
+    });
+  }
+
+  void _cancel() => Navigator.of(context).pop(null);
+
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: Colors.white,
-      child: SingleChildScrollView(
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFE0E0E0),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Map — full width, no top spacing
-            _buildMap(),
 
-            // Location label below the map
-            _buildLocationLabel(),
-
-            const SizedBox(height: 50),
-
-            // Big emergency button — no border, with shadow
-            GestureDetector(
-              onLongPress: _handleHold,
-              onTap: _handleTap,
-              child: Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    // Main drop shadow below the button
-                    BoxShadow(
-                      color: Colors.red.withOpacity(0.55),
-                      blurRadius: 30,
-                      spreadRadius: 6,
-                      offset: const Offset(0, 16),
+            // Title row with icon
+            Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 32, height: 32,
+                    decoration: const BoxDecoration(
+                      color: Colors.red, shape: BoxShape.circle,
                     ),
-                    // Subtle dark shadow for depth
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.18),
-                      blurRadius: 12,
-                      spreadRadius: 2,
-                      offset: const Offset(0, 8),
+                    child: const Icon(Icons.notifications, color: Colors.white, size: 18),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'CONFIRM EMERGENCY',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Center(
+              child: Text(
+                'Are you sure you want to send a report?',
+                style: TextStyle(fontSize: 12, color: Colors.black54),
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            // Type label
+            const Text(
+              'Select type of emergency:',
+              style: TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.w800,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // 2×2 grid
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 1.3,
+              children: _types.map((t) {
+                final label      = t['label']! as String;
+                final icon       = t['icon']!  as IconData;
+                final color      = t['color']! as Color;
+                final isSelected = _selectedType == label;
+
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedType = label),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: isSelected ? color : const Color(0xFFDDDDDD),
+                        width: isSelected ? 2.2 : 1.2,
+                      ),
+                      color: isSelected
+                          ? color.withOpacity(0.07)
+                          : Colors.white,
                     ),
-                  ],
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(icon, color: color, size: 32),
+                        const SizedBox(height: 4),
+                        Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isSelected ? color : Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+
+            // Specification — only visible when "Other" is selected
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              child: _selectedType == 'Other'
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: TextField(
+                        controller: _specCtrl,
+                        decoration: InputDecoration(
+                          hintText: 'Please specify (optional)',
+                          hintStyle: const TextStyle(
+                              color: Colors.black38, fontSize: 13),
+                          filled: true,
+                          fillColor: const Color(0xFFF5F5F5),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
+                        ),
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+
+            const SizedBox(height: 14),
+
+            // Description
+            const Text(
+              'Description',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 6),
+            TextField(
+              controller: _descCtrl,
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: 'Optional',
+                hintStyle: const TextStyle(
+                    color: Colors.black38, fontSize: 13),
+                filled: true,
+                fillColor: const Color(0xFFF5F5F5),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
                 ),
-                child: const Center(
-                  child: Icon(
-                    Icons.notifications,
-                    color: Colors.white,
-                    size: 80,
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 12),
+              ),
+              style: const TextStyle(fontSize: 13),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: const Color(0xFFEEEEEE),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: _cancel,
+                    child: const Text(
+                      'CANCEL',
+                      style: TextStyle(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _selectedType != null
+                          ? Colors.red
+                          : Colors.grey,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: _selectedType != null ? _submit : null,
+                    child: const Text(
+                      'SEND',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+              ],
             ),
+          ],
+        ),
+      ),
+      ),
+    );
+  }
+}
 
+// ─────────────────────────────────────────────────────────────────────────────
+// _HoldConfirmDialog  (hold flow — simple confirm only)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _HoldConfirmDialog extends StatelessWidget {
+  const _HoldConfirmDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFE0E0E0),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 32, height: 32,
+                  decoration: const BoxDecoration(
+                    color: Colors.red, shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.notifications, color: Colors.white, size: 18),
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'CONFIRM EMERGENCY',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Are you sure you want to send an emergency signal?',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Colors.black54),
+            ),
             const SizedBox(height: 28),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: const Color(0xFFEEEEEE),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text(
+                      'CANCEL',
+                      style: TextStyle(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text(
+                      'SEND',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-            const Text(
-              "Hold to send an emergency signal",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
+// ─────────────────────────────────────────────────────────────────────────────
+// _SignalSentDialog  (live responder status)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _SignalSentDialog extends StatefulWidget {
+  final String         incidentId;
+  final String         emergencyType;
+  final int Function() getCooldown;
+
+  const _SignalSentDialog({
+    required this.incidentId,
+    required this.emergencyType,
+    required this.getCooldown,
+  });
+
+  @override
+  State<_SignalSentDialog> createState() => _SignalSentDialogState();
+}
+
+class _SignalSentDialogState extends State<_SignalSentDialog> {
+
+  StreamSubscription<DocumentSnapshot>? _firestoreSub;
+  Timer? _uiTimer;
+
+  String       _status        = 'PENDING';
+  String       _sentTime      = '';
+  List<String> _responders    = [];
+  String       _specification = '';
+  String       _description   = '';
+  int          _secondsLeft   = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _secondsLeft = widget.getCooldown();
+
+    // Tick every second to refresh the cooldown label
+    _uiTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return;
+      setState(() => _secondsLeft = widget.getCooldown());
+    });
+
+    // Live Firestore listener
+    _firestoreSub = FirebaseFirestore.instance
+        .collection('incidents')
+        .doc(widget.incidentId)
+        .snapshots()
+        .listen((snap) {
+      if (!snap.exists || !mounted) return;
+      final data = snap.data()!;
+      setState(() {
+        _status        = (data['status']        as String? ?? 'PENDING').toUpperCase();
+        _sentTime      =  data['time']          as String? ?? '';
+        _specification =  data['specification'] as String? ?? '';
+        _description   =  data['description']  as String? ?? '';
+        final raw      =  data['responders'];
+        _responders    = raw is List ? raw.map((e) => e.toString()).toList() : [];
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _firestoreSub?.cancel();
+    _uiTimer?.cancel();
+    super.dispose();
+  }
+
+  bool get _isAcknowledged =>
+      _status == 'IN_PROGRESS'  ||
+      _status == 'IN PROGRESS'  ||
+      _status == 'ACKNOWLEDGED' ||
+      _status == 'RESOLVED';
+
+  String get _cooldownLabel {
+    final m = _secondsLeft ~/ 60;
+    final s = _secondsLeft % 60;
+    return '${m}m ${s.toString().padLeft(2, '0')}s';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF0F0),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+
+            // Bell icon
+            Container(
+              width: 90, height: 90,
+              decoration: const BoxDecoration(
+                color: Colors.red, shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.notifications, color: Colors.white, size: 48,
               ),
             ),
+            const SizedBox(height: 16),
+
+            // Title
             const Text(
-              "Tap 1 time to report an incident",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.black54, fontSize: 14),
+              'EMERGENCY SIGNAL SENT',
+              style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.4),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _isAcknowledged
+                  ? 'Responders are en route!'
+                  : 'Responders have been notified!',
+              style: const TextStyle(fontSize: 12, color: Colors.black54),
+            ),
+            const SizedBox(height: 14),
+
+            // Status card
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _isAcknowledged
+                      ? Colors.green
+                      : const Color(0xFFEEEEEE),
+                  width: 1.4,
+                ),
+              ),
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  // Dot + status text
+                  Row(
+                    children: [
+                      Container(
+                        width: 10, height: 10,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _isAcknowledged
+                              ? Colors.green
+                              : Colors.orange,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _isAcknowledged
+                              ? 'Responder has been assigned'
+                              : 'Waiting for acknowledgement...',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                            color: _isAcknowledged
+                                ? Colors.green
+                                : Colors.orange,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  if (_sentTime.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'Signal sent $_sentTime',
+                      style: const TextStyle(
+                          fontSize: 12, color: Colors.black54),
+                    ),
+                  ],
+
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Responder/s assigned',
+                    style: TextStyle(fontSize: 12, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 4),
+
+                  if (_responders.isEmpty)
+                    const Text(
+                      '  • —',
+                      style: TextStyle(fontSize: 12, color: Colors.black38),
+                    )
+                  else
+                    ..._responders.map((r) => Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 26, height: 26,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                      color: Colors.green, width: 1.5),
+                                ),
+                                child: const Center(
+                                  child: Text(
+                                    'UI',
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  r,
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                ],
+              ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 14),
+
+            // Report details
+            const Text(
+              'Report Details',
+              style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.black45,
+                  fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            _row('Incident ID',
+                '#${widget.incidentId.substring(0, min(10, widget.incidentId.length))}'),
+            _row('Emergency Type', widget.emergencyType),
+            _row('Specification',
+                _specification.isNotEmpty ? _specification : '–'),
+            _row('Description',
+                _description.isNotEmpty ? _description : '–'),
+
+            const SizedBox(height: 14),
+
+            // Cooldown countdown
+            if (_secondsLeft > 0)
+              Text(
+                'Next report available in: $_cooldownLabel',
+                style: const TextStyle(
+                    fontSize: 12, color: Colors.black45),
+              ),
+
+            const SizedBox(height: 16),
+
+            // Close button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text(
+                  'CLOSE',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // POP UP AND FUNCTIONS
-  void _handleTap() async {
-    //   print("tap detected yey");
-    final type = await _showSelection();
-    //   print("type $type");
-    if (type == null) return;
-
-    final confirmed = await _showConfirmDialog();
-    //   print("yis $confirmed");
-    if (confirmed) {
-      await _saveReportToDatabase(type);
-      await _showSignalSent();
-      // insert responder ui update here
-      // TODO: replace this with real Firestore incident submission
-      // Example real code later:
-      // await FirebaseFirestore.instance.collection('incidents').add({
-      //   'incidentId': generatedId,
-      //   'createdBy': currentUserId,
-      //   'emergencyType': type,
-      //   'barangay': normalizedBarangay,
-      //   'status': 'pending',
-      //   'createdAt': FieldValue.serverTimestamp(),
-      // });
-    }
-  }
-
-
-
-  void _handleHold() async {
-    //   print("long press detected");
-    final confirmed = await _showConfirmDialog();
-    //   print("noice $confirmed");
-    if (confirmed) {
-      await _saveReportToDatabase('EMERGENCY');
-      await _showSignalSent();
-      // insert responder ui update here
-      // TODO: replace this with real Firestore emergency signal submission
-      // Example real code later:
-      // await FirebaseFirestore.instance.collection('incidents').add({
-      //   'incidentId': generatedId,
-      //   'createdBy': currentUserId,
-      //   'emergencyType': 'Emergency',
-      //   'barangay': normalizedBarangay,
-      //   'status': 'pending',
-      //   'createdAt': FieldValue.serverTimestamp(),
-      // });
-    }
-  }
-
-
-
-
-
-  Future<String?> _showSelection() async {
-    return showDialog<String>(
-      context: context,
-      builder: (_) => SimpleDialog(
-        title: const Text("Select Emergency Type"),
+  Widget _row(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
         children: [
-          _option("Fire"),
-          _option("Flood"),
-          _option("Crime"),
-          _option("Others"),
-        ],
-      ),
-    );
-  }
-
-  Widget _option(String type) {
-    return SimpleDialogOption(
-      onPressed: () => Navigator.pop(context, type),
-      child: Text(type),
-    );
-  }
-
-  Future<bool> _showConfirmDialog() async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Are you sure?"),
-        content: const Text("This will notify responders right away."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
+          Expanded(
+            flex: 4,
+            child: Text(label,
+                style: const TextStyle(
+                    fontSize: 12, color: Colors.black45)),
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text("Yes"),
+          Expanded(
+            flex: 5,
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
     );
-    return result ?? false;
-  }
-
-  Future<void> _showSignalSent() async {
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Signal Sent"),
-        content:
-            const Text("Your emergency alert has been sent to responders."),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // STORING OF DATA TO FIRESTORE
-  Future<void> _saveReportToDatabase(String type) async {
-    //try {
-//      print("gumana sha");
-    await FirebaseFirestore.instance.collection('incidents').add({
-      'reportType': type,
-      'barangay': _locationLabel,
-      'street': _streetLabel,
-      'time': TimeOfDay.now().format(context),
-      'status': 'PENDING',
-      'specification': '',
-      'description': '',
-      'latitude': _currentLatLng?.latitude,
-      'longitude': _currentLatLng?.longitude,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
-    //    print("galing gumana i2 ${docRef.id}");
-    // }
-    // catch (e) {
-    //     print("bakit ayaq n sau$e");
-    //     }
-
   }
 }
 
-// --- Custom Red Pin Marker Widget ---
+// ─────────────────────────────────────────────────────────────────────────────
+// Map pin
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _PinMarker extends StatelessWidget {
   const _PinMarker();
 
@@ -518,8 +1223,7 @@ class _PinMarker extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 36,
-          height: 36,
+          width: 36, height: 36,
           decoration: BoxDecoration(
             color: Colors.red,
             shape: BoxShape.circle,
@@ -532,13 +1236,8 @@ class _PinMarker extends StatelessWidget {
               ),
             ],
           ),
-          child: const Icon(
-            Icons.person_pin,
-            color: Colors.white,
-            size: 20,
-          ),
+          child: const Icon(Icons.person_pin, color: Colors.white, size: 20),
         ),
-        // Pin tail
         CustomPaint(
           size: const Size(12, 10),
           painter: _PinTailPainter(),
@@ -554,18 +1253,63 @@ class _PinTailPainter extends CustomPainter {
     final paint = Paint()
       ..color = Colors.red
       ..style = PaintingStyle.fill;
-
     final path = ui.Path()
       ..moveTo(0, 0)
       ..lineTo(size.width / 2, size.height)
       ..lineTo(size.width, 0)
       ..close();
-
     canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(_PinTailPainter oldDelegate) => false;
+  bool shouldRepaint(_PinTailPainter old) => false;
+}
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Arc progress painter
+// ─────────────────────────────────────────────────────────────────────────────
 
+class _ArcPainter extends CustomPainter {
+  final double progress;
+  final Color  color;
+  final Color  trackColor;
+  final double strokeWidth;
+
+  const _ArcPainter({
+    required this.progress,
+    required this.color,
+    required this.trackColor,
+    required this.strokeWidth,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - strokeWidth) / 2;
+    final rect   = Rect.fromCircle(center: center, radius: radius);
+
+    canvas.drawCircle(
+      center, radius,
+      Paint()
+        ..color       = trackColor
+        ..style       = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap   = StrokeCap.round,
+    );
+
+    if (progress <= 0) return;
+
+    canvas.drawArc(
+      rect, -pi / 2, 2 * pi * progress, false,
+      Paint()
+        ..color       = color
+        ..style       = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap   = StrokeCap.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_ArcPainter old) =>
+      old.progress != progress || old.color != color;
 }
