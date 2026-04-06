@@ -446,8 +446,6 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
       color: Colors.white,
       child: Row(
         children: [
-          _tab('Mission', active: true),
-          _tab('Team Chat', active: false),
         ],
       ),
     );

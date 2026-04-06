@@ -247,7 +247,7 @@ class _ResponderLoginState extends State<ResponderLogin> {
                       textAlign: TextAlign.center,
                       text: TextSpan(
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 16,
                           color: Color(0xFF757575),
                           height: 1.5,
                         ),
