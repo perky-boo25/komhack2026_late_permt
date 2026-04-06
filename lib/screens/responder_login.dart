@@ -50,9 +50,12 @@ class _ResponderLoginState extends State<ResponderLogin> {
       final password = _password.text.trim(); // clean password
       String rawId = _responderId.text.trim().toUpperCase();
       String digits = rawId.replaceAll(RegExp(r'[^0-9]'), '');
-      digits = digits.padLeft(6, '0');
 
-      final id = 'RSP-${digits.substring(0,3)}-${digits.substring(3)}';
+      // para walang extra hyphen
+            String paddedDigits = digits.padLeft(6, '0');
+
+      // final ID: RSP-000001
+      final id = 'RSP-$paddedDigits';
       /* clean id pero will accept inputs like:
       1
       001
@@ -261,7 +264,7 @@ class _ResponderLoginState extends State<ResponderLogin> {
                     const SizedBox(height: 6), // label gap
                     _buildTextField(
                       controller: _responderId,
-                      hint: 'RSP-XXX-XXX',
+                      hint: 'RSP-XXXXXX',
                       keyboardType: TextInputType.text,
                       textCapitalization: TextCapitalization.characters,
                       autocorrect: false,

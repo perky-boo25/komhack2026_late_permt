@@ -9,8 +9,11 @@ import 'alert_data.dart';
 /// • Otherwise → "No Alert Assigned" empty state
 class AlertTab extends StatefulWidget {
   final void Function(int) onSwitchTab;
+  
 
-  const AlertTab({super.key, required this.onSwitchTab});
+  const AlertTab({super.key, required this.onSwitchTab, required String userRole});
+
+  final String userRole = 'responder';
 
   @override
   State<AlertTab> createState() => _AlertTabState();
