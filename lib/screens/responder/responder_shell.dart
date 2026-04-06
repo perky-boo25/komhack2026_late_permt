@@ -6,7 +6,7 @@ import 'package:komhack2026_late_permt/screens/responder/tab_alert.dart';
 import 'package:komhack2026_late_permt/screens/responder/tab_home.dart';
 import 'package:komhack2026_late_permt/screens/responder/tab_teams.dart';
 import 'package:komhack2026_late_permt/screens/responder/tab_profile.dart';
-import 'package:komhack2026_late_permt/screens/responder/admin/tab_teams_admin.dart';
+
 
 
 class AppState {
@@ -24,9 +24,8 @@ class ResponderShell extends StatefulWidget {
 
 class ResponderShellState extends State<ResponderShell> {
   int _selectedIndex = 2; // Home is the centre button
-  String _userRole = 'responder';
+  // String _userRole = 'responder';
 
-//for changing nav bar 2nd item whether user is admin or responder
   void switchTab(int index) => setState(() => _selectedIndex = index);
   
   void _loadUserRole() async {
@@ -42,9 +41,9 @@ class ResponderShellState extends State<ResponderShell> {
       final docData = query.docs.first.data();
       debugPrint("Logged in user data: $docData");
       
-      setState(() {
-        _userRole = docData['role'] ?? 'responder';
-      });
+      // setState(() {
+      //   _userRole = docData['role'] ?? 'responder';
+      // });
     }
   }
 }
@@ -60,7 +59,8 @@ class ResponderShellState extends State<ResponderShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
-      appBar: _buildAppBar(),
+      //hides app bar if current page is in account creation, it ugly
+      appBar: _selectedIndex == 5 ? null : _buildAppBar(),
       body: _buildBody(),
       bottomNavigationBar: _buildBottomNav(),
     );
@@ -108,22 +108,16 @@ class ResponderShellState extends State<ResponderShell> {
 
   Widget _buildBody() {
     switch (_selectedIndex) {
-      case 0:
-        return const MapTab();
-      case 1:
-        return _userRole == 'admin'
-            ? const ManageTab() //go to manage teams tab instead if user is admin
-            : AlertTab(onSwitchTab: switchTab, userRole: _userRole);
-      case 2:
-        return HomeTab(onSwitchTab: switchTab, userRole: _userRole);
-      case 3:
-        return const TeamsTab();
-      case 4:
-        return const ProfileTab();
-      default:
-        return HomeTab(onSwitchTab: switchTab, userRole: _userRole);
+      case 0: return const MapTab();
+      case 1: return AlertTab(onSwitchTab: switchTab);
+      case 2: return HomeTab(onSwitchTab: switchTab);
+      case 3: return const TeamsTab();
+      case 4: return const ProfileTab();
+      default: return HomeTab(onSwitchTab: switchTab);
     }
   }
+
+
 
   // ── BOTTOM NAV ──────────────────────────────────────────────────────────────
 
@@ -142,11 +136,7 @@ class ResponderShellState extends State<ResponderShell> {
               _navItem(0, Icons.map_outlined, 'Map'),
               
               // checks user role to see whether to present manage or alert
-              _navItem(
-                1,
-                Icons.notifications_outlined,
-                _userRole == 'admin' ? 'Manage Teams' : 'Alert'
-              ),
+              _navItem(1, Icons.notifications_outlined, 'Alert'),
               
               _homeButton(),
               _navItem(3, Icons.groups_outlined, 'Teams'),

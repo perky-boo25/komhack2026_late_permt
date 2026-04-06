@@ -11,9 +11,8 @@ class AlertTab extends StatefulWidget {
   final void Function(int) onSwitchTab;
   
 
-  const AlertTab({super.key, required this.onSwitchTab, required String userRole});
+  const AlertTab({super.key, required this.onSwitchTab});
 
-  final String userRole = 'responder';
 
   @override
   State<AlertTab> createState() => _AlertTabState();

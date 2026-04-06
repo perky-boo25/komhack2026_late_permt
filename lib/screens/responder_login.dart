@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:komhack2026_late_permt/screens/responder/admin/tab_teams_admin.dart';
 
 class ResponderLogin extends StatefulWidget {
   const ResponderLogin({super.key});
@@ -90,6 +91,11 @@ class _ResponderLoginState extends State<ResponderLogin> {
       // linked email
       final email = doc['email'] as String; // saved email
 
+      //
+      final role = data['role'] as String? ?? 'responder';
+
+
+
       // sign in
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
@@ -98,9 +104,23 @@ class _ResponderLoginState extends State<ResponderLogin> {
       
       //go dashboard
       //TODO:Uncomment this later on
+      // if (mounted) {
+      //   Navigator.pushReplacementNamed(context, '/responder-dashboard'); // next page
+      // }
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/responder-dashboard'); // next page
-      }
+        if (role == 'admin') {
+          //go to tab teams, for admin management
+           Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ManageTab()
+              )
+          );
+        } else {
+          // responder flow
+          Navigator.pushReplacementNamed(context, '/responder-dashboard');
+        }
+    }
       
       //TODO: remove this later on
 
