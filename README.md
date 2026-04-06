@@ -1,5 +1,8 @@
 # awSOS Official Documentation
 
+Access the APK file here:
+https://drive.google.com/drive/folders/1Ew6evmvLL-SPmWk_MBzHYYGRbxAHoiBn?usp=drive_link
+
 # OVERVIEW
 
 awSOS is a local-based mobile application designed to enable faster information dissemination and emergency response within a specific municipality. It serves as a centralized platform for streamlined communication between residents and responders.
