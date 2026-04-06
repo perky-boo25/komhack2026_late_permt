@@ -237,7 +237,6 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
   String       _sentTime      = '';
   String       _specification = '';
   String       _description   = '';
-  String       _assignedUnit  = '';
 
   @override
   void initState() {
@@ -246,7 +245,6 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
     _sentTime      = widget.record.time;
     _specification = widget.record.specification;
     _description   = widget.record.description;
-    _assignedUnit  = widget.record.assignedUnit;
 
     _sub = FirebaseFirestore.instance
         .collection('incidents')
@@ -260,7 +258,6 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
         _sentTime      =  data['time']          as String? ?? _sentTime;
         _specification =  data['specification'] as String? ?? '';
         _description   =  data['description']  as String? ?? '';
-        _assignedUnit  =  data['assignedUnit']  as String? ?? '';
       });
     });
   }
@@ -454,48 +451,7 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
                       ),
                     ],
 
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Assigned Unit',
-                      style: TextStyle(fontSize: 12, color: Colors.black54),
-                    ),
                     const SizedBox(height: 4),
-
-                    if (_assignedUnit.isEmpty)
-                      const Text(
-                        '  • —',
-                        style: TextStyle(fontSize: 12, color: Colors.black38),
-                      )
-                    else
-                      Row(
-                        children: [
-                          Container(
-                            width: 26, height: 26,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.green, width: 1.5),
-                            ),
-                            child: Center(
-                              child: Text(
-                                _assignedUnit[0].toUpperCase(),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.green,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _assignedUnit,
-                              style: const TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ],
-                      ),
                   ],
                 ),
               ),
