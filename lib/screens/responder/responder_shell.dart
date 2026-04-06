@@ -7,6 +7,7 @@ import 'package:komhack2026_late_permt/screens/responder/tab_home.dart';
 import 'package:komhack2026_late_permt/screens/responder/tab_teams.dart';
 import 'package:komhack2026_late_permt/screens/responder/tab_profile.dart';
 import 'package:komhack2026_late_permt/screens/responder/admin/tab_teams_admin.dart';
+import 'package:komhack2026_late_permt/services/responder_alert_notif.dart';
 
 
 class AppState {
@@ -77,7 +78,18 @@ class ResponderShellState extends State<ResponderShell> {
   @override
   void initState() {
     super.initState();
+
     _loadUserRole();
+
+    // start real-time incident listening for this responder
+    RealtimeResponderAlertService.instance.startListening();
+  }
+
+  @override
+  void dispose() {
+    // stop listener when leaving screen
+    RealtimeResponderAlertService.instance.stopListening();
+    super.dispose();
   }
 
   @override
