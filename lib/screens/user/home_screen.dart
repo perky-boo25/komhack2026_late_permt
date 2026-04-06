@@ -923,7 +923,6 @@ class _SignalSentDialogState extends State<_SignalSentDialog> {
 
   String       _status        = 'PENDING';
   String       _sentTime      = '';
-  List<String> _responders    = [];
   String       _specification = '';
   String       _description   = '';
   int          _secondsLeft   = 0;
@@ -953,8 +952,6 @@ class _SignalSentDialogState extends State<_SignalSentDialog> {
         _sentTime      =  data['time']          as String? ?? '';
         _specification =  data['specification'] as String? ?? '';
         _description   =  data['description']  as String? ?? '';
-        final raw      =  data['responders'];
-        _responders    = raw is List ? raw.map((e) => e.toString()).toList() : [];
       });
     });
   }
@@ -1079,52 +1076,6 @@ class _SignalSentDialogState extends State<_SignalSentDialog> {
                   ],
 
                   const SizedBox(height: 4),
-                  const Text(
-                    'Responder/s assigned',
-                    style: TextStyle(fontSize: 12, color: Colors.black54),
-                  ),
-                  const SizedBox(height: 4),
-
-                  if (_responders.isEmpty)
-                    const Text(
-                      '  • —',
-                      style: TextStyle(fontSize: 12, color: Colors.black38),
-                    )
-                  else
-                    ..._responders.map((r) => Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 26, height: 26,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: Colors.green, width: 1.5),
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    'UI',
-                                    style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.green,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  r,
-                                  style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )),
                 ],
               ),
             ),
