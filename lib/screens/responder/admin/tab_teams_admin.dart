@@ -11,6 +11,40 @@ class ManageTab extends StatefulWidget {
 }
 
 class ManageTabState extends State<ManageTab> {
+    Future<void> _deleteResponder(String docId, String name) async {
+    bool confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Responder"),
+        content: Text("Are you sure you want to delete $name?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    ) ?? false;
+
+    if (confirm) {
+      try {
+        await FirebaseFirestore.instance.collection('responders').doc(docId).delete();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("$name deleted successfully")),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Failed to delete: $e")),
+          );
+        }
+      }
+    }
+  }
+
   AppBar _buildAppBar() {
     return AppBar(
       title: const Text(
@@ -38,13 +72,16 @@ class ManageTabState extends State<ManageTab> {
           padding: const EdgeInsets.symmetric(vertical: 10),
           itemCount: docs.length,
           itemBuilder: (context, index) {
-            final data = docs[index].data() as Map<String, dynamic>;
+            final doc = docs[index]; // Use doc to get the ID
+            final data = doc.data() as Map<String, dynamic>;
+            
             return ResponderTile(
               rID: data['responderId'] ?? 'N/A',
               name: data['name'] ?? 'Unknown',
               loc: data['department'] ?? 'General',
               dept: data['department'] ?? 'gen',
               isActive: data['status'] == true,
+              onDelete: () => _deleteResponder(doc.id, data['name'] ?? 'Unknown'),
             );
           },
         );
@@ -70,7 +107,7 @@ class ManageTabState extends State<ManageTab> {
               borderRadius: BorderRadius.circular(10),
               color: const Color.fromARGB(204, 239, 239, 239),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))
+                BoxShadow(color: Colors.black.withValues(), blurRadius: 4, offset: const Offset(0, 2))
               ],
             ),
             child: const Center(
@@ -89,6 +126,7 @@ class ManageTabState extends State<ManageTab> {
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
