@@ -165,7 +165,7 @@ class LogoWidget extends StatelessWidget {
         width: 90,
         height: 90,
         child: Image.asset(
-          'images/logo.jpg',
+          'images/logo.png',
           fit: BoxFit.cover,
         ),
       ),
