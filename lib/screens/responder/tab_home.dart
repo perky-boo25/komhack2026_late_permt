@@ -10,7 +10,7 @@ import 'alert_data.dart';
 class HomeTab extends StatefulWidget {
   final void Function(int) onSwitchTab;
 
-  const HomeTab({super.key, required this.onSwitchTab});
+  const HomeTab({super.key, required this.onSwitchTab, required String userRole});
 
   @override
   State<HomeTab> createState() => _HomeTabState();
