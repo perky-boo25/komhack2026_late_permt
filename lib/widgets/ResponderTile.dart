@@ -7,6 +7,7 @@ class ResponderTile extends StatelessWidget {
   final String loc;
   final String dept;
   final bool isActive;
+  final VoidCallback? onDelete;
 
   const ResponderTile({
     super.key,
@@ -15,6 +16,7 @@ class ResponderTile extends StatelessWidget {
     required this.loc,
     required this.dept,
     required this.isActive,
+    this.onDelete,
   });
 
 /// GETTERS
@@ -41,15 +43,23 @@ class ResponderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: Colors.black12, width: 0.5),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          )
+        ],
       ),
       child: ListTile(
-        tileColor: Colors.white,
+        contentPadding: EdgeInsets.zero, 
+        tileColor: Colors.transparent, 
         leading: CircleAvatar(
           backgroundColor: _getDeptColor().withOpacity(0.2),
           child: Text(
@@ -72,25 +82,39 @@ class ResponderTile extends StatelessWidget {
             Text(loc, style: const TextStyle(fontSize: 12)),
           ],
         ),
-        trailing: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: isActive ? Colors.green[50] : Colors.grey[100],
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isActive ? Colors.green.shade300 : Colors.grey.shade400,
-                width: 1,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: isActive ? Colors.green[50] : Colors.grey[100],
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isActive ? Colors.green.shade300 : Colors.grey.shade400,
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                isActive ? "• ACTIVE" : "• IDLE",
+                style: TextStyle(
+                  fontSize: 10,
+                  color: isActive ? Colors.green[700] : Colors.grey[600],
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            child: Text(
-              isActive ? "• ACTIVE" : "• IDLE",
-              style: TextStyle(
-                fontSize: 10,
-                color: isActive ? Colors.green[700] : Colors.grey[600],
-                fontWeight: FontWeight.bold,
+            if (onDelete != null) ...[
+              const SizedBox(width: 8),
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                onPressed: onDelete,
               ),
-            ),
-          ),
+            ],
+          ],
+        ),
       ),
     );
   }

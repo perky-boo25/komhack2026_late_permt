@@ -69,7 +69,7 @@ class _NewAcctPageState extends State<NewAcctPage> {
         "email": email,
         "department": _selectedDept,
         "role": "responder",
-        "status": true,
+        "status": false,
         "responderId": rID,
         "uid": userCredential.user!.uid,
         "createdAt": FieldValue.serverTimestamp(),
