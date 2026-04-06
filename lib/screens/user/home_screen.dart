@@ -628,7 +628,7 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
                   const SizedBox(width: 8),
                   const Text(
                     'I-KUMPIRMA AND REPORT',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
                   ),
                 ],
               ),
@@ -840,7 +840,7 @@ class _HoldConfirmDialog extends StatelessWidget {
                 const SizedBox(width: 8),
                 const Text(
                   'I-KUMPIRMA ANG REPORT',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                 ),
               ],
             ),
