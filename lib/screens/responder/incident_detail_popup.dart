@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'alert_data.dart';
+import 'responder_shell.dart'; // gives access to AppState
 
 // ── IncidentDetailPopup ───────────────────────────────────────────────────────
 //
@@ -94,7 +97,7 @@ class IncidentDetailPopup extends StatelessWidget {
 //   • Full page  (embeddedMode: false) — pushed via Navigator
 //   • Embedded   (embeddedMode: true)  — inside a Dialog / Alerts tab
 
-class IncidentDetailScreen extends StatelessWidget {
+class IncidentDetailScreen extends StatefulWidget {
   final String alertId;
   final DateTime? alertDate;
   final String alertType;
@@ -128,10 +131,59 @@ class IncidentDetailScreen extends StatelessWidget {
     this.onDecline,
   });
 
+  @override
+  State<IncidentDetailScreen> createState() => _IncidentDetailScreenState();
+}
+
+class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
+  // Fetched from Firestore — same pattern as ProfileTab
+  String _initials   = '';
+  String _unit       = '';
+  String _department = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadResponderInfo();
+  }
+
+  /// Queries `responders` collection by the logged-in user's UID,
+  /// exactly the same way ProfileTab does.
+  Future<void> _loadResponderInfo() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final query = await FirebaseFirestore.instance
+        .collection('responders')
+        .where('uid', isEqualTo: user.uid)
+        .limit(1)
+        .get();
+
+    if (!mounted || query.docs.isEmpty) return;
+
+    final data = query.docs.first.data();
+    final name       = (data['name']        as String? ?? '').trim();
+    final unit       = (data['responderId'] as String? ?? '').trim();
+    final department = (data['department']  as String? ?? '').trim();
+
+    final parts = name.split(' ').where((p) => p.isNotEmpty).toList();
+    final initials = parts.length >= 2
+        ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
+        : parts.isNotEmpty
+            ? parts[0][0].toUpperCase()
+            : '?';
+
+    setState(() {
+      _initials   = initials;
+      _unit       = unit;
+      _department = department;
+    });
+  }
+
   // ── Type helpers ─────────────────────────────────────────────────────────────
 
   IconData get _icon {
-    switch (alertType) {
+    switch (widget.alertType) {
       case 'fire':      return Icons.local_fire_department;
       case 'flood':     return Icons.water_drop;
       case 'emergency': return Icons.emergency;
@@ -141,7 +193,7 @@ class IncidentDetailScreen extends StatelessWidget {
   }
 
   Color get _color {
-    switch (alertType) {
+    switch (widget.alertType) {
       case 'fire':      return Colors.orange;
       case 'flood':     return Colors.blue;
       case 'emergency': return Colors.red;
@@ -151,7 +203,7 @@ class IncidentDetailScreen extends StatelessWidget {
   }
 
   String get _title {
-    switch (alertType) {
+    switch (widget.alertType) {
       case 'fire':      return 'Fire Alert';
       case 'flood':     return 'Flood Alert';
       case 'emergency': return 'Emergency Alert';
@@ -164,7 +216,7 @@ class IncidentDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      embeddedMode ? _buildContent(context) : _buildAsPage(context);
+      widget.embeddedMode ? _buildContent(context) : _buildAsPage(context);
 
   Widget _buildAsPage(BuildContext context) {
     return Scaffold(
@@ -197,7 +249,7 @@ class IncidentDetailScreen extends StatelessWidget {
               child: Column(
                 children: [
                   _buildMiniMap(),
-                  if (isAccepted && !isResolved) _buildTabBar(),
+                  if (widget.isAccepted && !widget.isResolved) _buildTabBar(),
                   _buildDetailsSection(),
                   const SizedBox(height: 20),
                 ],
@@ -219,13 +271,13 @@ class IncidentDetailScreen extends StatelessWidget {
     final Color iconBg;
     final Color iconColor;
 
-    if (isResolved) {
+    if (widget.isResolved) {
       bg        = Colors.grey.shade100;
       textColor = Colors.black54;
       subColor  = Colors.black38;
       iconBg    = Colors.grey.shade200;
       iconColor = Colors.grey;
-    } else if (isAccepted) {
+    } else if (widget.isAccepted) {
       bg        = _color;
       textColor = Colors.white;
       subColor  = Colors.white70;
@@ -264,13 +316,13 @@ class IncidentDetailScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '$alertLocation • $alertTime',
+                  '${widget.alertLocation} • ${widget.alertTime}',
                   style: TextStyle(fontSize: 12, color: subColor),
                 ),
               ],
             ),
           ),
-          if (isResolved)
+          if (widget.isResolved)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
@@ -287,7 +339,7 @@ class IncidentDetailScreen extends StatelessWidget {
                 ),
               ),
             )
-          else if (isAccepted)
+          else if (widget.isAccepted)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
@@ -312,13 +364,12 @@ class IncidentDetailScreen extends StatelessWidget {
   // ── Mini map (real OSM, centred on this alert) ────────────────────────────────
 
   Widget _buildMiniMap() {
-    final alertPoint = LatLng(alertLat, alertLng);
+    final alertPoint = LatLng(widget.alertLat, widget.alertLng);
 
     return SizedBox(
       height: 180,
       child: Stack(
         children: [
-          // Non-interactive OSM map centred on the incident
           IgnorePointer(
             child: FlutterMap(
               options: MapOptions(
@@ -361,7 +412,6 @@ class IncidentDetailScreen extends StatelessWidget {
               ],
             ),
           ),
-          // Coordinates label
           Positioned(
             bottom: 6,
             left: 0,
@@ -375,7 +425,7 @@ class IncidentDetailScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  '${alertLat.toStringAsFixed(4)}, ${alertLng.toStringAsFixed(4)}',
+                  '${widget.alertLat.toStringAsFixed(4)}, ${widget.alertLng.toStringAsFixed(4)}',
                   style: const TextStyle(
                     fontSize: 11,
                     color: Colors.black54,
@@ -431,14 +481,18 @@ class IncidentDetailScreen extends StatelessWidget {
 
   Widget _buildDetailsSection() {
     final String specValue =
-        (alertSpecification != null && alertSpecification!.isNotEmpty)
-            ? alertSpecification!
+        (widget.alertSpecification != null && widget.alertSpecification!.isNotEmpty)
+            ? widget.alertSpecification!
             : '–';
 
     final String descriptionText =
-        (alertDescription != null && alertDescription!.isNotEmpty)
-            ? alertDescription!
+        (widget.alertDescription != null && widget.alertDescription!.isNotEmpty)
+            ? widget.alertDescription!
             : 'No description provided.';
+
+    // Use the responder info fetched from Firestore in initState
+    final String responderLabel =
+        [_unit, _department].where((s) => s.isNotEmpty).join(' • ');
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -450,13 +504,13 @@ class IncidentDetailScreen extends StatelessWidget {
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-          _detailRow('Incident ID', alertId),
-          _detailRow('Date Reported', formatDate(alertDate)),
+          _detailRow('Incident ID', widget.alertId),
+          _detailRow('Date Reported', formatDate(widget.alertDate)),
           _detailRow('Emergency Type', _title),
-          _detailRow('Time Reported', alertTime),
+          _detailRow('Time Reported', widget.alertTime),
           _detailRow(
               'Coordinates',
-              '${alertLat.toStringAsFixed(4)}, ${alertLng.toStringAsFixed(4)}'),
+              '${widget.alertLat.toStringAsFixed(4)}, ${widget.alertLng.toStringAsFixed(4)}'),
           _detailRow('Specification', specValue),
           const SizedBox(height: 12),
 
@@ -497,7 +551,7 @@ class IncidentDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Responder/s assigned box
+          // ── Responder/s assigned box ────────────────────────────────────
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(12),
@@ -518,7 +572,7 @@ class IncidentDetailScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                if (isAccepted || isResolved)
+                if (widget.isAccepted || widget.isResolved)
                   Row(
                     children: [
                       Container(
@@ -528,20 +582,23 @@ class IncidentDetailScreen extends StatelessWidget {
                           color: Colors.blue.shade100,
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
-                          'U1',
+                        child: Text(
+                          _initials.isNotEmpty ? _initials : '?',
                           style: TextStyle(
                             fontSize: 10,
-                            color: Colors.blue,
+                            color: Colors.blue.shade800,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                       const SizedBox(width: 6),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'UNIT 01 • Fire Truck dispatched',
-                          style: TextStyle(fontSize: 12, color: Colors.black54),
+                          responderLabel.isNotEmpty
+                              ? responderLabel
+                              : 'Responder assigned',
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.black54),
                         ),
                       ),
                     ],
@@ -583,7 +640,7 @@ class IncidentDetailScreen extends StatelessWidget {
 
   Widget _buildBottomBar(BuildContext context) {
     // Resolved → just a close button, no actions
-    if (isResolved) {
+    if (widget.isResolved) {
       return Container(
         color: Colors.white,
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
@@ -591,7 +648,7 @@ class IncidentDetailScreen extends StatelessWidget {
           width: double.infinity,
           child: OutlinedButton(
             onPressed: () =>
-                embeddedMode ? onDecline?.call() : Navigator.pop(context),
+                widget.embeddedMode ? widget.onDecline?.call() : Navigator.pop(context),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
               side: const BorderSide(color: Colors.black26),
@@ -610,7 +667,7 @@ class IncidentDetailScreen extends StatelessWidget {
       );
     }
 
-    if (isAccepted) {
+    if (widget.isAccepted) {
       return Container(
         color: Colors.white,
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
@@ -619,7 +676,7 @@ class IncidentDetailScreen extends StatelessWidget {
             Expanded(
               child: OutlinedButton(
                 onPressed: () =>
-                    embeddedMode ? onDecline?.call() : Navigator.pop(context),
+                    widget.embeddedMode ? widget.onDecline?.call() : Navigator.pop(context),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   side: const BorderSide(color: Colors.black26),
@@ -675,7 +732,7 @@ class IncidentDetailScreen extends StatelessWidget {
           Expanded(
             child: OutlinedButton(
               onPressed: () =>
-                  embeddedMode ? onDecline?.call() : Navigator.pop(context),
+                  widget.embeddedMode ? widget.onDecline?.call() : Navigator.pop(context),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 side: const BorderSide(color: Colors.black26),
@@ -696,7 +753,7 @@ class IncidentDetailScreen extends StatelessWidget {
             flex: 2,
             child: ElevatedButton.icon(
               onPressed: () =>
-                  embeddedMode ? onAccept?.call() : Navigator.pop(context),
+                  widget.embeddedMode ? widget.onAccept?.call() : Navigator.pop(context),
               icon: const Icon(Icons.check_circle, color: Colors.white),
               label: const Text(
                 'Accept & Respond',

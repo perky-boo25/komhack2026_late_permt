@@ -13,6 +13,13 @@ class AppState {
   /// null  = no alert assigned to this responder yet
   /// non-null = the alert that was accepted
   static Map<String, dynamic>? assignedAlert;
+
+  // ── Logged-in responder info (populated on shell init) ──────────────────────
+  // These are used by the "Responder/s assigned" section instead of hardcoded values.
+  static String responderInitials = '';   // e.g. "JD"
+  static String responderUnit = '';       // e.g. "UNIT 03"
+  static String responderDepartment = ''; // e.g. "Fire Department"
+  static String responderName = '';       // e.g. "Juan Dela Cruz"
 }
 
 class ResponderShell extends StatefulWidget {
@@ -26,28 +33,46 @@ class ResponderShellState extends State<ResponderShell> {
   int _selectedIndex = 2; // Home is the centre button
   // String _userRole = 'responder';
 
+  //for changing nav bar 2nd item whether user is admin or responder
   void switchTab(int index) => setState(() => _selectedIndex = index);
-  
-  void _loadUserRole() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    final query = await FirebaseFirestore.instance
-        .collection('responders')
-        .where('uid', isEqualTo: user.uid)
-        .limit(1)
-        .get();
 
-    if (mounted && query.docs.isNotEmpty) {
-      final docData = query.docs.first.data();
-      debugPrint("Logged in user data: $docData");
-      
-      // setState(() {
-      //   _userRole = docData['role'] ?? 'responder';
-      // });
+  void _loadUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final query = await FirebaseFirestore.instance
+          .collection('responders')
+          .where('uid', isEqualTo: user.uid)
+          .limit(1)
+          .get();
+
+      if (mounted && query.docs.isNotEmpty) {
+        final docData = query.docs.first.data();
+        debugPrint("Logged in user data: $docData");
+
+        // ── Populate AppState with the real responder info ──────────────────
+        final name = (docData['name'] ?? '').toString();
+        final responderId = (docData['responderId'] ?? '').toString();
+        final department = (docData['department'] ?? '').toString();
+
+        AppState.responderName = name;
+        AppState.responderUnit = responderId;       // e.g. "UNIT 03"
+        AppState.responderDepartment = department;  // e.g. "Fire Department"
+        AppState.responderInitials = _initials(name);
+
+        setState(() {
+          _userRole = docData['role'] ?? 'responder';
+        });
+      }
     }
   }
-}
 
+  /// Derives two-letter initials from a full name.
+  static String _initials(String name) {
+    final parts = name.trim().split(' ').where((p) => p.isNotEmpty).toList();
+    if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    if (parts.length == 1) return parts[0][0].toUpperCase();
+    return '?';
+  }
 
   @override
   void initState() {
@@ -77,13 +102,13 @@ class ResponderShellState extends State<ResponderShell> {
         children: [
           // Logo placeholder – replace with Image.asset('assets/logo.png')
           ClipRRect(
-              borderRadius: BorderRadius.circular(6), // rounded logo
-              child: SizedBox(
+            borderRadius: BorderRadius.circular(6),
+            child: SizedBox(
               width: 34,
               height: 34,
-              child: Image.asset('images/logo.jpg', fit: BoxFit.cover), // app logo
-              ),
+              child: Image.asset('images/logo.jpg', fit: BoxFit.cover),
             ),
+          ),
           const SizedBox(width: 10),
           const Text(
             'Application Name',
@@ -108,12 +133,20 @@ class ResponderShellState extends State<ResponderShell> {
 
   Widget _buildBody() {
     switch (_selectedIndex) {
-      case 0: return const MapTab();
-      case 1: return AlertTab(onSwitchTab: switchTab);
-      case 2: return HomeTab(onSwitchTab: switchTab);
-      case 3: return const TeamsTab();
-      case 4: return const ProfileTab();
-      default: return HomeTab(onSwitchTab: switchTab);
+      case 0:
+        return const MapTab();
+      case 1:
+        return _userRole == 'admin'
+            ? const ManageTab()
+            : AlertTab(onSwitchTab: switchTab, userRole: _userRole);
+      case 2:
+        return HomeTab(onSwitchTab: switchTab, userRole: _userRole);
+      case 3:
+        return const TeamsTab();
+      case 4:
+        return const ProfileTab();
+      default:
+        return HomeTab(onSwitchTab: switchTab, userRole: _userRole);
     }
   }
 
@@ -134,10 +167,11 @@ class ResponderShellState extends State<ResponderShell> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _navItem(0, Icons.map_outlined, 'Map'),
-              
-              // checks user role to see whether to present manage or alert
-              _navItem(1, Icons.notifications_outlined, 'Alert'),
-              
+              _navItem(
+                1,
+                Icons.notifications_outlined,
+                _userRole == 'admin' ? 'Manage Teams' : 'Alert',
+              ),
               _homeButton(),
               _navItem(3, Icons.groups_outlined, 'Teams'),
               _navItem(4, Icons.person_outlined, 'Profile'),
