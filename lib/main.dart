@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print, unused_import
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -38,7 +40,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Wala pa kita name',
+      title: 'awSOS',
       debugShowCheckedModeBanner: false,
 
       // starting screen

@@ -28,3 +28,13 @@
 //     expect(find.text('1'), findsOneWidget);
 //   });
 // }
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:komhack2026_late_permt/main.dart';
+
+void main() {
+  testWidgets('app loads', (WidgetTester tester) async {
+    await tester.pumpWidget(const MyApp());
+    expect(find.byType(MyApp), findsOneWidget);
+  });
+}

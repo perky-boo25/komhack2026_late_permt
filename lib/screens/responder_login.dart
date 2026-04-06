@@ -103,10 +103,6 @@ class _ResponderLoginState extends State<ResponderLogin> {
       );
       
       //go dashboard
-      //TODO:Uncomment this later on
-      // if (mounted) {
-      //   Navigator.pushReplacementNamed(context, '/responder-dashboard'); // next page
-      // }
       if (mounted) {
         if (role == 'admin') {
           //go to tab teams, for admin management
@@ -122,8 +118,6 @@ class _ResponderLoginState extends State<ResponderLogin> {
         }
     }
       
-      //TODO: remove this later on
-
     } on FirebaseAuthException catch (e) {
       setState(() {
         switch (e.code) {
@@ -326,7 +320,7 @@ class _ResponderLoginState extends State<ResponderLogin> {
                         onPressed: _isLoading ? null : _onLoginPressed, // disable while loading
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _red,
-                          disabledBackgroundColor: _red.withOpacity(0.5), // faded red
+                          disabledBackgroundColor: _red.withValues(alpha:0.5), // faded red
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8), // rounded button

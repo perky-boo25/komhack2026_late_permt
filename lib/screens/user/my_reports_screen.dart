@@ -192,7 +192,7 @@ class _SectionCard extends StatelessWidget {
         border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha:0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -372,7 +372,7 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
               Container(
                 width: 90, height: 90,
                 decoration: BoxDecoration(
-                  color: _iconColorForType(type).withOpacity(0.12),
+                  color: _iconColorForType(type).withValues(alpha:0.12),
                   shape: BoxShape.circle,
                   border: Border.all(color: _iconColorForType(type), width: 2),
                 ),

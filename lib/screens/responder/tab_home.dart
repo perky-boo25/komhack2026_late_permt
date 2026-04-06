@@ -1,5 +1,7 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
+// ignore_for_file: unused_field
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -23,8 +25,6 @@ class _HomeTabState extends State<HomeTab> {
   // Mini-map controller so we can imperatively move it after first build
   final MapController _miniMapController = MapController();
   String? _lastCentredId; // tracks which alert the mini-map is centred on
-
-  var _userRole;
 
   // ── Getters ──────────────────────────────────────────────────────────────────
 
@@ -292,7 +292,7 @@ class _HomeTabState extends State<HomeTab> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.07),
+              color: Colors.black.withValues(alpha: 0.07),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -414,7 +414,7 @@ class _HomeTabState extends State<HomeTab> {
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha:0.05),
                 blurRadius: 4,
                 offset: const Offset(0, 2))
           ],
@@ -460,7 +460,7 @@ class _HomeTabState extends State<HomeTab> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha:0.05),
                 blurRadius: 6,
                 offset: const Offset(0, 2))
           ],
@@ -471,7 +471,7 @@ class _HomeTabState extends State<HomeTab> {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                color: color.withValues(alpha:0.12),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 24),
@@ -632,7 +632,7 @@ class _ExpandHint extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.85),
+        color: Colors.white.withValues(alpha:0.85),
         borderRadius: BorderRadius.circular(20),
       ),
       child: const Text(

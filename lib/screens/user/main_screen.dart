@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'my_reports_screen.dart';
@@ -21,8 +23,14 @@ class _MainScreenState extends State<MainScreen> {
   bool networkActive = false;
   bool isSafe = false;
 
-  //TODO: replace later with actual logged-in na UID
+
   final String userId = '2026-12345';
+  bool _hasInternet(List<ConnectivityResult> result) {
+  return result.contains(ConnectivityResult.mobile) ||
+         result.contains(ConnectivityResult.wifi) ||
+         result.contains(ConnectivityResult.ethernet) ||
+         result.contains(ConnectivityResult.vpn);
+}
 
   //for device connectivity changes
   StreamSubscription<List<ConnectivityResult>>? _networkSub;
@@ -71,7 +79,7 @@ class _MainScreenState extends State<MainScreen> {
   // checks current network state once during startup
   Future<void> _checkInitialNetworkStatus() async {
     final result = await Connectivity().checkConnectivity();
-    final bool online = result != ConnectivityResult.none;
+    final bool online = _hasInternet(result);
 
     if (!mounted) return;
 
@@ -92,8 +100,7 @@ class _MainScreenState extends State<MainScreen> {
   // listens to actual device internet/network connectivity
   void _listenToNetworkStatus() {
     _networkSub = Connectivity().onConnectivityChanged.listen((result) async {
-      // Device is considered online if connectivity is not none
-      final bool online = result != ConnectivityResult.none;
+      final bool online = _hasInternet(result);
 
       if (!mounted) return;
 

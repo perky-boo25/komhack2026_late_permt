@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element, unused_import
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -281,13 +283,13 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
       bg        = _color;
       textColor = Colors.white;
       subColor  = Colors.white70;
-      iconBg    = Colors.white.withOpacity(0.25);
+      iconBg    = Colors.white.withValues(alpha:0.25);
       iconColor = Colors.white;
     } else {
       bg        = Colors.white;
       textColor = Colors.black87;
       subColor  = Colors.black45;
-      iconBg    = _color.withOpacity(0.12);
+      iconBg    = _color.withValues(alpha:0.12);
       iconColor = _color;
     }
 
@@ -343,7 +345,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.25),
+                color: Colors.white.withValues(alpha: 0.25),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.white54),
               ),
@@ -421,7 +423,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.85),
+                  color: Colors.white.withValues(alpha: .85),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(

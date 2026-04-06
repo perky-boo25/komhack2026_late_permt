@@ -141,7 +141,7 @@ class _NewAcctPageState extends State<NewAcctPage> {
 
   Widget _buildDeptDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedDept,
+      initialValue: _selectedDept,
       decoration: const InputDecoration(border: OutlineInputBorder(), labelText: "Select Department"),
       items: _deptList.map((val) => DropdownMenuItem(value: val, child: Text(val))).toList(),
       onChanged: (val) => setState(() => _selectedDept = val!),

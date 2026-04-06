@@ -51,7 +51,7 @@ class ResponderTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:0.05),
             blurRadius: 6,
             offset: const Offset(0, 2),
           )
@@ -61,7 +61,7 @@ class ResponderTile extends StatelessWidget {
         contentPadding: EdgeInsets.zero, 
         tileColor: Colors.transparent, 
         leading: CircleAvatar(
-          backgroundColor: _getDeptColor().withOpacity(0.2),
+          backgroundColor: _getDeptColor().withValues(alpha:0.2),
           child: Text(
             _initials,
             style: TextStyle(

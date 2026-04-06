@@ -1,7 +1,9 @@
+// ignore_for_file: unused_import
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:komhack2026_late_permt/screens/responder/admin/new_responder.dart';
-import 'package:komhack2026_late_permt/widgets/ResponderTile.dart';
+import 'package:komhack2026_late_permt/widgets/responder_tile.dart';
 
 class TeamsTab extends StatefulWidget {
   const TeamsTab ({super.key});
