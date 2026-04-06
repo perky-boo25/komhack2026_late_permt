@@ -9,7 +9,6 @@ import 'alert_data.dart';
 /// • Otherwise → "No Alert Assigned" empty state
 class AlertTab extends StatefulWidget {
   final void Function(int) onSwitchTab;
-  
 
   const AlertTab({super.key, required this.onSwitchTab});
 
@@ -32,7 +31,8 @@ class _AlertTabState extends State<AlertTab> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.notifications_off_outlined, size: 48, color: Colors.black26),
+          Icon(Icons.notifications_off_outlined,
+              size: 48, color: Colors.black26),
           SizedBox(height: 12),
           Text(
             'No Alert Assigned',
@@ -64,14 +64,16 @@ class _AlertTabState extends State<AlertTab> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
             Icon(Icons.check_circle_outline, color: Colors.green, size: 22),
             SizedBox(width: 8),
             Text(
               'Mark as Resolved?',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+              style:
+                  TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
             ),
           ],
         ),
@@ -80,7 +82,8 @@ class _AlertTabState extends State<AlertTab> {
           'This action cannot be undone.',
           style: TextStyle(fontSize: 14, color: Colors.black54),
         ),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        actionsPadding:
+            const EdgeInsets.fromLTRB(16, 0, 16, 12),
         actions: [
           OutlinedButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -88,7 +91,8 @@ class _AlertTabState extends State<AlertTab> {
               side: const BorderSide(color: Colors.black26),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 20, vertical: 12),
             ),
             child: const Text(
               'No, go back',
@@ -102,7 +106,8 @@ class _AlertTabState extends State<AlertTab> {
               backgroundColor: Colors.green,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 20, vertical: 12),
             ),
             child: const Text(
               'Yes, resolve',
@@ -115,16 +120,16 @@ class _AlertTabState extends State<AlertTab> {
     );
 
     if (confirmed == true) {
-      setState(() {
-        // Mark resolved in-place — keep in sharedAlerts so HomeTab can
-        // still open the popup from the Resolved Reports list.
-        alert['status'] = 'resolved';
-        alert['resolvedAt'] = TimeOfDay.now().format(context);
-        if (!resolvedAlerts.contains(alert)) {
-          resolvedAlerts.insert(0, alert);
-        }
-        AppState.assignedAlert = null;
-      });
+      final docId = alert['id'] as String?;
+      if (docId != null && docId.isNotEmpty) {
+        // Write resolved status back to Firestore
+        await updateIncidentStatus(docId, 'RESOLVED');
+      }
+      if (mounted) {
+        setState(() {
+          AppState.assignedAlert = null;
+        });
+      }
     }
   }
 }
@@ -175,13 +180,10 @@ class _AssignedIncidentView extends StatelessWidget {
   }
 
   // ── Safe field reads ──────────────────────────────────────────────────────
-  // 'time' is the new key; 'timeAgo' is the old key — fall back gracefully.
 
   String get _time {
     final t = alert['time'];
     if (t is String && t.isNotEmpty) return t;
-    final ta = alert['timeAgo'];
-    if (ta is String && ta.isNotEmpty) return ta;
     return '–';
   }
 
@@ -209,7 +211,7 @@ class _AssignedIncidentView extends StatelessWidget {
       children: [
         // ── Header ──────────────────────────────────────────────────────────
         Container(
-          color: Colors.white,
+          color: _color,
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
           child: Row(
             children: [
@@ -217,10 +219,10 @@ class _AssignedIncidentView extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: _color.withOpacity(0.12),
+                  color: Colors.white.withOpacity(0.25),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(_icon, color: _color, size: 24),
+                child: Icon(_icon, color: Colors.white, size: 24),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -230,32 +232,33 @@ class _AssignedIncidentView extends StatelessWidget {
                     Text(
                       _title,
                       style: const TextStyle(
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
-                      '${alert['location']} • $_time',
+                      alert['location'] as String? ?? '–',
                       style: const TextStyle(
-                          fontSize: 11, color: Colors.black45),
+                          color: Colors.white70, fontSize: 13),
                     ),
                   ],
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.green.shade300),
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Text(
                   'In Progress',
                   style: TextStyle(
-                    color: Colors.green,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -263,83 +266,45 @@ class _AssignedIncidentView extends StatelessWidget {
           ),
         ),
 
-        // ── Scrollable body ─────────────────────────────────────────────────
         Expanded(
           child: SingleChildScrollView(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Real OSM mini map ──────────────────────────────────────
+                // ── Mini map ──────────────────────────────────────────────
                 SizedBox(
                   height: 180,
-                  child: Stack(
+                  child: FlutterMap(
+                    options: MapOptions(
+                      initialCenter: alertPoint,
+                      initialZoom: 15,
+                      interactionOptions: const InteractionOptions(
+                          flags: InteractiveFlag.none),
+                    ),
                     children: [
-                      IgnorePointer(
-                        child: FlutterMap(
-                          options: MapOptions(
-                            initialCenter: alertPoint,
-                            initialZoom: 15.5,
-                            interactionOptions: const InteractionOptions(
-                              flags: InteractiveFlag.none,
-                            ),
-                          ),
-                          children: [
-                            TileLayer(
-                              urlTemplate:
-                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                              userAgentPackageName:
-                                  'com.example.responder_app',
-                            ),
-                            MarkerLayer(
-                              markers: [
-                                Marker(
-                                  point: alertPoint,
-                                  width: 40,
-                                  height: 40,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: _color,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                          color: Colors.white, width: 2),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          color: Colors.black26,
-                                          blurRadius: 4,
-                                          offset: Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Icon(_icon,
-                                        color: Colors.white, size: 20),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                      TileLayer(
+                        urlTemplate:
+                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'com.example.responder_app',
                       ),
-                      // Coordinates label
-                      Positioned(
-                        bottom: 6,
-                        left: 0,
-                        right: 0,
-                        child: Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.85),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Colors.black54,
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: alertPoint,
+                            width: 40,
+                            height: 40,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: _color,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: Colors.white, width: 2),
                               ),
+                              child: Icon(_icon,
+                                  color: Colors.white, size: 20),
                             ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
@@ -347,7 +312,8 @@ class _AssignedIncidentView extends StatelessWidget {
 
                 // ── Incident details ───────────────────────────────────────
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+                  padding:
+                      const EdgeInsets.fromLTRB(16, 14, 16, 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -361,6 +327,8 @@ class _AssignedIncidentView extends StatelessWidget {
                       const SizedBox(height: 10),
                       _detailRow('Incident ID',
                           alert['id'] as String? ?? '–'),
+                      _detailRow('Date Reported',
+                          formatDate(alert['createdAt'] as DateTime?)),
                       _detailRow('Emergency Type',
                           _title.replaceAll(' Alert', '')),
                       _detailRow('Time Reported', _time),
@@ -416,7 +384,8 @@ class _AssignedIncidentView extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.grey.shade50,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade200),
+                          border:
+                              Border.all(color: Colors.grey.shade200),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,11 +402,13 @@ class _AssignedIncidentView extends StatelessWidget {
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 2),
+                                  padding:
+                                      const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: Colors.green.shade50,
-                                    borderRadius: BorderRadius.circular(4),
+                                    borderRadius:
+                                        BorderRadius.circular(4),
                                     border: Border.all(
                                         color: Colors.green.shade300),
                                   ),
@@ -522,7 +493,8 @@ class _AssignedIncidentView extends StatelessWidget {
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1A1A2E),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
@@ -543,7 +515,8 @@ class _AssignedIncidentView extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(fontSize: 13, color: Colors.black45),
+              style:
+                  const TextStyle(fontSize: 13, color: Colors.black45),
             ),
           ),
           Text(

@@ -4,9 +4,8 @@ import 'package:latlong2/latlong.dart';
 import 'alert_data.dart';
 
 /// Full-screen live map tab powered by OpenStreetMap (flutter_map).
-/// - Plots only active (non-resolved) alerts from [sharedAlerts].
+/// - Plots only active (non-resolved) incidents from Firestore.
 /// - Tapping a marker opens a small bottom-sheet summary.
-/// - No GPS / device location is used.
 class MapTab extends StatefulWidget {
   const MapTab({super.key});
 
@@ -20,17 +19,7 @@ class _MapTabState extends State<MapTab> {
   // Centre of Santa Barbara, Iloilo — used as the fixed initial view
   static const LatLng _defaultCenter = LatLng(10.8272, 122.5314);
 
-  // Only show alerts that are NOT resolved on the map
-  List<Map<String, dynamic>> get _visibleAlerts =>
-      sharedAlerts.where((a) => a['status'] != 'resolved').toList();
-
   // ── Helpers ──────────────────────────────────────────────────────────────────
-
-  int get _respondCount =>
-      _visibleAlerts.where((a) => a['status'] == 'respond').length;
-
-  int get _inProgressCount =>
-      _visibleAlerts.where((a) => a['status'] == 'inProgress').length;
 
   Color _colorForType(String type) {
     switch (type) {
@@ -64,9 +53,8 @@ class _MapTabState extends State<MapTab> {
 
   // ── Markers ───────────────────────────────────────────────────────────────────
 
-  /// Builds one marker per active alert using the lat/lng stored in [sharedAlerts].
-  List<Marker> _buildAlertMarkers() {
-    return _visibleAlerts.map((alert) {
+  List<Marker> _buildAlertMarkers(List<Map<String, dynamic>> alerts) {
+    return alerts.map((alert) {
       final color = _colorForType(alert['type'] as String);
       final icon = _iconForType(alert['type'] as String);
       final point = LatLng(alert['lat'] as double, alert['lng'] as double);
@@ -131,42 +119,38 @@ class _MapTabState extends State<MapTab> {
                   Text(
                     alert['title'] as String,
                     style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     alert['location'] as String,
-                    style: const TextStyle(
-                        fontSize: 13, color: Colors.black54),
+                    style: const TextStyle(fontSize: 13, color: Colors.black54),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${alert['lat']}, ${alert['lng']}',
-                    style: const TextStyle(
-                        fontSize: 11, color: Colors.black38),
+                    style: const TextStyle(fontSize: 11, color: Colors.black38),
                   ),
                 ],
               ),
             ),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: status == 'inProgress'
                     ? Colors.orange.shade50
                     : Colors.red.shade50,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color:
-                      status == 'inProgress' ? Colors.orange : Colors.red,
+                  color: status == 'inProgress' ? Colors.orange : Colors.red,
                 ),
               ),
               child: Text(
                 status == 'inProgress' ? 'In Progress' : 'Respond',
                 style: TextStyle(
-                  color: status == 'inProgress'
-                      ? Colors.orange
-                      : Colors.red,
+                  color: status == 'inProgress' ? Colors.orange : Colors.red,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),
@@ -180,55 +164,99 @@ class _MapTabState extends State<MapTab> {
 
   // ── Build ─────────────────────────────────────────────────────────────────────
 
+  // Tracks the last centred alert id so we only move when a NEW alert arrives
+  String? _lastCentredId;
+
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // ── OpenStreetMap ────────────────────────────────────────────────────
-        FlutterMap(
-          mapController: _mapController,
-          options: const MapOptions(
-            initialCenter: _defaultCenter,
-            initialZoom: 14.5,
-            interactionOptions:
-                InteractionOptions(flags: InteractiveFlag.all),
-          ),
-          children: [
-            TileLayer(
-              urlTemplate:
-                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.example.responder_app',
-              maxZoom: 19,
-            ),
-            MarkerLayer(markers: _buildAlertMarkers()),
-          ],
-        ),
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: activeAlertsStream(),
+      builder: (context, snapshot) {
+        final alerts = snapshot.data ?? [];
+        final respondCount = alerts
+            .where((a) => a['status'] == 'respond')
+            .length;
+        final inProgressCount = alerts
+            .where((a) => a['status'] == 'inProgress')
+            .length;
 
-        // ── Header strip ─────────────────────────────────────────────────────
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: Container(
-            color: Colors.white,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            child: Row(
-              children: [
-                const Text(
-                  'Live map',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 13),
+        // Centre on the most recent alert whenever it changes
+        if (alerts.isNotEmpty) {
+          final newest = alerts.first; // stream is sorted newest-first
+          final newestId = newest['id'] as String?;
+          if (newestId != null && newestId != _lastCentredId) {
+            _lastCentredId = newestId;
+            // Use addPostFrameCallback so the map is already laid out
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _mapController.move(
+                LatLng(newest['lat'] as double, newest['lng'] as double),
+                15.0,
+              );
+            });
+          }
+        }
+
+        return Stack(
+          children: [
+            // ── OpenStreetMap ──────────────────────────────────────────────
+            FlutterMap(
+              mapController: _mapController,
+              options: const MapOptions(
+                initialCenter: _defaultCenter,
+                initialZoom: 14.5,
+                interactionOptions: InteractionOptions(
+                  flags: InteractiveFlag.all,
                 ),
-                const Spacer(),
-                _statusDot('$_respondCount Respond', Colors.red),
-                const SizedBox(width: 10),
-                _statusDot('$_inProgressCount In progress', Colors.orange),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.example.responder_app',
+                  maxZoom: 19,
+                ),
+                MarkerLayer(markers: _buildAlertMarkers(alerts)),
               ],
             ),
-          ),
-        ),
-      ],
+
+            // ── Header strip ───────────────────────────────────────────────
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
+                child: Row(
+                  children: [
+                    const Text(
+                      'OpenStreetMap',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (snapshot.connectionState == ConnectionState.waiting)
+                      const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    else ...[
+                      _statusDot('$respondCount Respond', Colors.red),
+                      const SizedBox(width: 10),
+                      _statusDot('$inProgressCount In progress', Colors.orange),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -238,13 +266,13 @@ class _MapTabState extends State<MapTab> {
         Container(
           width: 8,
           height: 8,
-          decoration:
-              BoxDecoration(color: color, shape: BoxShape.circle),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 4),
-        Text(label,
-            style:
-                const TextStyle(fontSize: 11, color: Colors.black54)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: Colors.black54),
+        ),
       ],
     );
   }

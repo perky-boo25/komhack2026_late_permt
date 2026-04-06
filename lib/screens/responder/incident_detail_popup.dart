@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'alert_data.dart';
 
 // ── IncidentDetailPopup ───────────────────────────────────────────────────────
 //
@@ -9,6 +10,8 @@ import 'package:latlong2/latlong.dart';
 // show real data from alert_data.dart.
 
 class IncidentDetailPopup extends StatelessWidget {
+  final String alertId;
+  final DateTime? alertDate;
   final String alertType;
   final double alertLat;
   final double alertLng;
@@ -24,6 +27,8 @@ class IncidentDetailPopup extends StatelessWidget {
 
   const IncidentDetailPopup({
     super.key,
+    required this.alertId,
+    this.alertDate,
     required this.alertType,
     required this.alertLat,
     required this.alertLng,
@@ -63,6 +68,8 @@ class IncidentDetailPopup extends StatelessWidget {
       child: SizedBox(
         height: MediaQuery.of(context).size.height * 0.85,
         child: IncidentDetailScreen(
+          alertId: alertId,
+          alertDate: alertDate,
           alertType: alertType,
           alertLat: alertLat,
           alertLng: alertLng,
@@ -88,6 +95,8 @@ class IncidentDetailPopup extends StatelessWidget {
 //   • Embedded   (embeddedMode: true)  — inside a Dialog / Alerts tab
 
 class IncidentDetailScreen extends StatelessWidget {
+  final String alertId;
+  final DateTime? alertDate;
   final String alertType;
   final double alertLat;
   final double alertLng;
@@ -103,6 +112,8 @@ class IncidentDetailScreen extends StatelessWidget {
 
   const IncidentDetailScreen({
     super.key,
+    required this.alertId,
+    this.alertDate,
     required this.alertType,
     required this.alertLat,
     required this.alertLng,
@@ -439,6 +450,8 @@ class IncidentDetailScreen extends StatelessWidget {
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
+          _detailRow('Incident ID', alertId),
+          _detailRow('Date Reported', formatDate(alertDate)),
           _detailRow('Emergency Type', _title),
           _detailRow('Time Reported', alertTime),
           _detailRow(
