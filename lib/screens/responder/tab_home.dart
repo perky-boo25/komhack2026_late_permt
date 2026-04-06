@@ -1,5 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -9,9 +9,8 @@ import 'alert_data.dart';
 
 class HomeTab extends StatefulWidget {
   final void Function(int) onSwitchTab;
-  final String userRole;
 
-  const HomeTab({super.key, required this.onSwitchTab, required this.userRole});
+  const HomeTab({super.key, required this.onSwitchTab});
 
   @override
   State<HomeTab> createState() => _HomeTabState();
@@ -125,27 +124,28 @@ class _HomeTabState extends State<HomeTab> {
 
   // ── Build ─────────────────────────────────────────────────────────────────────
 
-  @override
-  void initState() {
-    super.initState();
-    _getUserRole();
-  }
 
-  void _getUserRole() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final query = await FirebaseFirestore.instance
-          .collection('responders')
-          .where('uid', isEqualTo: user.uid)
-          .limit(1)
-          .get();
-      if (mounted && query.docs.isNotEmpty) {
-        setState(() {
-          _userRole = query.docs.first.data()['role'] ?? 'responder';
-        });
-      }
-    }
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _getUserRole();
+  // }
+
+//to get current logged in user's role:
+  // void _getUserRole() async {
+  //   final user = FirebaseAuth.instance.currentUser;
+  //   if (user != null) {
+  //     final doc = await FirebaseFirestore.instance
+  //         .collection('responders')
+  //         .doc(user.uid)
+  //         .get();
+  //     if (mounted) {
+  //       setState(() {
+  //         _userRole = doc.data()?['role'] ?? 'responder';
+  //       });
+  //     }
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -449,11 +449,7 @@ class _HomeTabState extends State<HomeTab> {
 
     return GestureDetector(
       onTap: () {
-        if (widget.userRole == 'admin') {
-          widget.onSwitchTab(1);
-        } else {
           _showIncidentPopup(context, alert);
-        }
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),

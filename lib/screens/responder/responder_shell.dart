@@ -6,7 +6,7 @@ import 'package:komhack2026_late_permt/screens/responder/tab_alert.dart';
 import 'package:komhack2026_late_permt/screens/responder/tab_home.dart';
 import 'package:komhack2026_late_permt/screens/responder/tab_teams.dart';
 import 'package:komhack2026_late_permt/screens/responder/tab_profile.dart';
-import 'package:komhack2026_late_permt/screens/responder/admin/tab_teams_admin.dart';
+
 
 
 class AppState {
@@ -31,7 +31,7 @@ class ResponderShell extends StatefulWidget {
 
 class ResponderShellState extends State<ResponderShell> {
   int _selectedIndex = 2; // Home is the centre button
-  String _userRole = 'responder';
+  // String _userRole = 'responder';
 
   //for changing nav bar 2nd item whether user is admin or responder
   void switchTab(int index) => setState(() => _selectedIndex = index);
@@ -84,7 +84,8 @@ class ResponderShellState extends State<ResponderShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
-      appBar: _buildAppBar(),
+      //hides app bar if current page is in account creation, it ugly
+      appBar: _selectedIndex == 5 ? null : _buildAppBar(),
       body: _buildBody(),
       bottomNavigationBar: _buildBottomNav(),
     );
@@ -148,6 +149,8 @@ class ResponderShellState extends State<ResponderShell> {
         return HomeTab(onSwitchTab: switchTab, userRole: _userRole);
     }
   }
+
+
 
   // ── BOTTOM NAV ──────────────────────────────────────────────────────────────
 
