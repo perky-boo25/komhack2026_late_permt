@@ -838,13 +838,13 @@ class _HoldConfirmDialog extends StatelessWidget {
                   child: const Icon(Icons.notifications, color: Colors.white, size: 18),
                 ),
                 const SizedBox(width: 8),
-                const Text(
+                const Text( 
                   'I-KUMPIRMA ANG REPORT',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 8), 
             const Text(
               'Sigurado ka bang gusto mo magreport?',
               textAlign: TextAlign.center,
