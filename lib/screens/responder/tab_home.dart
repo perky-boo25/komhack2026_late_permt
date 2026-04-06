@@ -177,8 +177,8 @@ class _HomeTabState extends State<HomeTab> {
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
                     child: Text(
                       activeSnap.connectionState == ConnectionState.waiting
-                          ? 'Active Alerts (…)'
-                          : 'Active Alerts (${sorted.length})',
+                          ? 'Mga aktibong alert (…)'
+                          : 'Mga aktibong alert (${sorted.length})',
                       style: const TextStyle(
                           fontSize: 18, fontWeight: FontWeight.bold),
                     ),
@@ -220,7 +220,7 @@ class _HomeTabState extends State<HomeTab> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
                       child: Text(
-                        'Resolved Reports (${resolvedAlerts.length})',
+                        'Natugunan na mga report (${resolvedAlerts.length})',
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),

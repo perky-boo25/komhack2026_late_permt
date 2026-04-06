@@ -417,18 +417,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               )
             else ...[
               const Text(
-                'Hold to send an emergency signal',
+                'I-hold para magsend ng SOS signal',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.black,
-                  fontSize: 17,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const Text(
-                'Tap 1 time to report an incident',
+                'I-tap para magreport ng insidente',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.black54, fontSize: 14),
+                style: TextStyle(color: Colors.black54, fontSize: 19),
               ),
             ],
 
@@ -535,7 +535,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           const SizedBox(width: 4),
           Flexible(
             child: Text(
-              _locationError ? displayText : 'You are in: $displayText',
+              _locationError ? displayText : 'Ikaw ay nasa: $displayText',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -574,10 +574,10 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
   final TextEditingController _descCtrl = TextEditingController();
 
   static const List<Map<String, Object>> _types = [
-    {'label': 'Fire',    'icon': Icons.local_fire_department, 'color': Color(0xFFFF6B35)},
-    {'label': 'Flood',   'icon': Icons.water_drop,            'color': Color(0xFF29B6F6)},
-    {'label': 'Medical', 'icon': Icons.medical_services,      'color': Color(0xFF43A047)},
-    {'label': 'Other',   'icon': Icons.report_sharp,          'color': Color(0xFF000000)},
+    {'label': 'Sunog',    'icon': Icons.local_fire_department, 'color': Color(0xFFFF6B35)},
+    {'label': 'Baha',   'icon': Icons.water_drop,            'color': Color(0xFF29B6F6)},
+    {'label': 'Medikal', 'icon': Icons.medical_services,      'color': Color(0xFF43A047)},
+    {'label': 'Iba pa',   'icon': Icons.report_sharp,          'color': Color(0xFF000000)},
   ];
 
   @override
@@ -627,7 +627,7 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
                   ),
                   const SizedBox(width: 8),
                   const Text(
-                    'CONFIRM EMERGENCY',
+                    'I-KUMPIRMA AND REPORT',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                   ),
                 ],
@@ -636,19 +636,19 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
             const SizedBox(height: 4),
             const Center(
               child: Text(
-                'Are you sure you want to send a report?',
-                style: TextStyle(fontSize: 12, color: Colors.black54),
+                'Sigurado ka bang gusto mo magreport?',
+                style: TextStyle(fontSize: 15, color: Colors.black54),
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
 
             // Type label
             const Text(
-              'Select type of emergency:',
+              'Pumili ng kategorya ng emergency:',
               style: TextStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.w800,
-                fontSize: 14,
+                fontSize: 16,
               ),
             ),
             const SizedBox(height: 12),
@@ -704,15 +704,15 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
             // Specification — only visible when "Other" is selected
             AnimatedSize(
               duration: const Duration(milliseconds: 200),
-              child: _selectedType == 'Other'
+              child: _selectedType == 'Iba pa'
                   ? Padding(
                       padding: const EdgeInsets.only(top: 12),
                       child: TextField(
                         controller: _specCtrl,
                         decoration: InputDecoration(
-                          hintText: 'Please specify (optional)',
+                          hintText: 'Pakitukoy (opsyonal)',
                           hintStyle: const TextStyle(
-                              color: Colors.black38, fontSize: 13),
+                              color: Colors.black38, fontSize: 15),
                           filled: true,
                           fillColor: const Color(0xFFF5F5F5),
                           border: OutlineInputBorder(
@@ -732,15 +732,15 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
 
             // Description
             const Text(
-              'Description',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+              'Karagdagang Impormasyon',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),
             TextField(
               controller: _descCtrl,
               maxLines: 3,
               decoration: InputDecoration(
-                hintText: 'Optional',
+                hintText: 'Opsyonal',
                 hintStyle: const TextStyle(
                     color: Colors.black38, fontSize: 13),
                 filled: true,
@@ -770,7 +770,7 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
                     ),
                     onPressed: _cancel,
                     child: const Text(
-                      'CANCEL',
+                      'I-KANSELA',
                       style: TextStyle(
                           color: Colors.black87,
                           fontWeight: FontWeight.w700),
@@ -790,7 +790,7 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
                     ),
                     onPressed: _selectedType != null ? _submit : null,
                     child: const Text(
-                      'SEND',
+                      'ISUMITE',
                       style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w700),
@@ -839,14 +839,14 @@ class _HoldConfirmDialog extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 const Text(
-                  'CONFIRM EMERGENCY',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                  'I-KUMPIRMA ANG REPORT',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             const Text(
-              'Are you sure you want to send an emergency signal?',
+              'Sigurado ka bang gusto mo magreport?',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13, color: Colors.black54),
             ),
@@ -1003,18 +1003,18 @@ class _SignalSentDialogState extends State<_SignalSentDialog> {
 
             // Title
             const Text(
-              'EMERGENCY SIGNAL SENT',
+              'EMERGENCY NAIREPORT',
               style: TextStyle(
-                  fontSize: 17,
+                  fontSize: 20,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0.4),
             ),
             const SizedBox(height: 4),
             Text(
               _isAcknowledged
-                  ? 'Responders are en route!'
-                  : 'Responders have been notified!',
-              style: const TextStyle(fontSize: 12, color: Colors.black54),
+                  ? 'Papunta na ang mga responder!'
+                  : 'Naipaalam na sa mga responder!',
+              style: const TextStyle(fontSize: 15, color: Colors.black54),
             ),
             const SizedBox(height: 14),
 
@@ -1052,11 +1052,11 @@ class _SignalSentDialogState extends State<_SignalSentDialog> {
                       Expanded(
                         child: Text(
                           _isAcknowledged
-                              ? 'Responder has been assigned'
-                              : 'Waiting for acknowledgement...',
+                              ? 'Na-assign na ang responder'
+                              : 'Naghihintay ng kumpirmasayon...',
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
-                            fontSize: 13,
+                            fontSize: 15,
                             color: _isAcknowledged
                                 ? Colors.green
                                 : Colors.orange,
@@ -1069,9 +1069,9 @@ class _SignalSentDialogState extends State<_SignalSentDialog> {
                   if (_sentTime.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
-                      'Signal sent $_sentTime',
+                      'Oras na nireport: $_sentTime',
                       style: const TextStyle(
-                          fontSize: 12, color: Colors.black54),
+                          fontSize: 15, color: Colors.black54),
                     ),
                   ],
 
@@ -1084,19 +1084,19 @@ class _SignalSentDialogState extends State<_SignalSentDialog> {
 
             // Report details
             const Text(
-              'Report Details',
+              'Detalye ng Report',
               style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 16,
                   color: Colors.black45,
                   fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
-            _row('Incident ID',
+            _row('ID ng insidente',
                 '#${widget.incidentId.substring(0, min(10, widget.incidentId.length))}'),
-            _row('Emergency Type', widget.emergencyType),
-            _row('Specification',
+            _row('Uri ng Emergency', widget.emergencyType),
+            _row('Espesipikasyon',
                 _specification.isNotEmpty ? _specification : '–'),
-            _row('Description',
+            _row('Deskripsyon',
                 _description.isNotEmpty ? _description : '–'),
 
             const SizedBox(height: 14),
@@ -1104,9 +1104,9 @@ class _SignalSentDialogState extends State<_SignalSentDialog> {
             // Cooldown countdown
             if (_secondsLeft > 0)
               Text(
-                'Next report available in: $_cooldownLabel',
+                'Makakareport uli sa: $_cooldownLabel',
                 style: const TextStyle(
-                    fontSize: 12, color: Colors.black45),
+                    fontSize: 15, color: Colors.black45),
               ),
 
             const SizedBox(height: 16),
@@ -1123,7 +1123,7 @@ class _SignalSentDialogState extends State<_SignalSentDialog> {
                 ),
                 onPressed: () => Navigator.of(context).pop(),
                 child: const Text(
-                  'CLOSE',
+                  'I-CLOSE',
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.w700),
                 ),

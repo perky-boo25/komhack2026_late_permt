@@ -44,23 +44,14 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                 const SizedBox(height: 16),
 
                 // app name
-                const Text(
-                  'Application Name',
-                  style: TextStyle(
-                    fontSize: 34,
-                    fontWeight: FontWeight.w900,
-                    color: _black,
-                    letterSpacing: -1,
-                  ),
-                ),
 
                 const SizedBox(height: 4),
 
                 // tagline
                 const Text(
-                  'insert tagline',
+                  'Mabuhay!',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 20,
                     color: Color(0xFF9E9E9E),
                     letterSpacing: 0.3,
                   ),
@@ -70,9 +61,9 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
 
                 //  label
                 Center(child: Text(
-                  'I am a ...',
+                  'Isa akong ...',
                   style:TextStyle(
-                    fontSize: 16,
+                    fontSize: 20,
                     color: Colors.grey.shade500,
                     letterSpacing: 0.4,
                   ),
@@ -85,8 +76,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                 GestureDetector(
                   onTap: () => setState(() => isResidentSelected = true),
                   child: RoleOptionTile(
-                    label: 'Resident / Local',
-                    sublabel: 'Report emergencies in your area',
+                    label: 'Residente / Lokal',
+                    sublabel: 'Mag-ulat ng mga emergency sa inyong lugar',
                     icon: Icons.person_outline,
                     accentColor: _orange,
                     isSelected: isResidentSelected,
@@ -100,7 +91,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                   onTap: () => setState(() => isResidentSelected = false),
                   child: RoleOptionTile(
                     label: 'Responder',
-                    sublabel: 'Respond to emergency reports',
+                    sublabel: 'Umaksyon sa mga emergency',
                     icon: Icons.shield_outlined,
                     accentColor: _red,
                     isSelected: !isResidentSelected,
@@ -128,10 +119,10 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                       children: [
                         Text(
                           isResidentSelected
-                              ? 'Continue as Resident'
-                              : 'Continue as Responder',
+                              ? 'Magpatuloy bilang Residente'
+                              : 'Magpatuloy bilang Responder',
                           style: const TextStyle(
-                            fontSize: 14,
+                            fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: _white,
                             letterSpacing: 0.3,
@@ -162,8 +153,8 @@ class LogoWidget extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: SizedBox(
-        width: 90,
-        height: 90,
+        width: 500,
+        height: 180,
         child: Image.asset(
           'images/logo.png',
           fit: BoxFit.cover,
@@ -237,7 +228,7 @@ class RoleOptionTile extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 20,
                     fontWeight: isSelected
                         ? FontWeight.w700
                         : FontWeight.w500,
@@ -248,7 +239,7 @@ class RoleOptionTile extends StatelessWidget {
                 Text(
                   sublabel,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 15,
                     color: isSelected
                         ? accentColor.withOpacity(0.8)
                         : const Color(0xFF9E9E9E),

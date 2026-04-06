@@ -288,9 +288,9 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
 
   String get _statusLabel {
     switch (_normalizedStatus) {
-      case 'IN PROGRESS': return 'Responder has been assigned';
-      case 'RESOLVED':    return 'Report resolved';
-      default:            return 'Waiting for acknowledgement...';
+      case 'IN PROGRESS': return 'Na-assign na ang responder';
+      case 'RESOLVED':    return 'Natugunan';
+      default:            return 'Naghihintay ng kumpirmasyon';
     }
   }
 
@@ -446,7 +446,7 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
                     if (_sentTime.isNotEmpty) ...[
                       const SizedBox(height: 6),
                       Text(
-                        'Report sent at $_sentTime',
+                        'Oras naisumite: $_sentTime',
                         style: const TextStyle(fontSize: 12, color: Colors.black54),
                       ),
                     ],
@@ -462,21 +462,21 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
               const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Report Details',
+                  'Detalye ng Report',
                   style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 16,
                       color: Colors.black45,
                       fontWeight: FontWeight.w600),
                 ),
               ),
               const SizedBox(height: 8),
-              _row('Incident ID',
+              _row('ID ng insidente',
                   '#${widget.record.incidentId.substring(0, min(10, widget.record.incidentId.length))}'),
-              _row('Emergency Type', type),
+              _row('Uri ng Emergency', type),
               _row('Status', _normalizedStatus),
-              _row('Specification',
+              _row('Espesipikasyon',
                   _specification.isNotEmpty ? _specification : '–'),
-              _row('Description',
+              _row('Deskripsyon',
                   _description.isNotEmpty ? _description : '–'),
 
               const SizedBox(height: 20),
@@ -493,7 +493,7 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
                   ),
                   onPressed: () => Navigator.of(context).pop(),
                   child: const Text(
-                    'CLOSE',
+                    'I-CLOSE',
                     style: TextStyle(
                         color: Colors.white, fontWeight: FontWeight.w700),
                   ),

@@ -37,7 +37,7 @@ class _AlertTabState extends State<AlertTab> {
               size: 48, color: Colors.black26),
           SizedBox(height: 12),
           Text(
-            'No Alert Assigned',
+            'Walang Alert',
             style: TextStyle(
               fontSize: 16,
               color: Colors.black45,
@@ -73,15 +73,15 @@ class _AlertTabState extends State<AlertTab> {
             Icon(Icons.check_circle_outline, color: Colors.green, size: 22),
             SizedBox(width: 8),
             Text(
-              'Mark as Resolved?',
+              'Sigurado kana?',
               style:
                   TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
             ),
           ],
         ),
         content: const Text(
-          'Are you sure this incident has been fully resolved? '
-          'This action cannot be undone.',
+          'Sigurado na bang natuganan nang maayos ang report na ito?'
+          ' Hindi na maibabalik ang aksyong ito.',
           style: TextStyle(fontSize: 14, color: Colors.black54),
         ),
         actionsPadding:
@@ -97,7 +97,7 @@ class _AlertTabState extends State<AlertTab> {
                   horizontal: 20, vertical: 12),
             ),
             child: const Text(
-              'No, go back',
+              'Bumalik',
               style: TextStyle(
                   color: Colors.black54, fontWeight: FontWeight.w600),
             ),
@@ -112,7 +112,7 @@ class _AlertTabState extends State<AlertTab> {
                   horizontal: 20, vertical: 12),
             ),
             child: const Text(
-              'Yes, resolve',
+              'Oo, tapos na',
               style: TextStyle(
                   color: Colors.white, fontWeight: FontWeight.bold),
             ),
@@ -244,7 +244,7 @@ class _AssignedIncidentViewState extends State<_AssignedIncidentView> {
   String get _description {
     final d = widget.alert['description'];
     if (d is String && d.isNotEmpty) return d;
-    return 'No description provided.';
+    return 'Walang detalyeng binigay';
   }
 
   String get _specification {
@@ -376,21 +376,21 @@ class _AssignedIncidentViewState extends State<_AssignedIncidentView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Incident Details',
+                        'Detalye ng Insidente',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 10),
-                      _detailRow('Incident ID',
+                      _detailRow('ID ng insidente',
                           alert['id'] as String? ?? '–'),
-                      _detailRow('Date Reported',
+                      _detailRow('Petsa',
                           formatDate(alert['createdAt'] as DateTime?)),
-                      _detailRow('Emergency Type',
+                      _detailRow('Uri ng Emergency',
                           _title.replaceAll(' Alert', '')),
-                      _detailRow('Time Reported', _time),
-                      _detailRow('Specification', _specification),
+                      _detailRow('Oras naisumite', _time),
+                      _detailRow('Espesipikasyon', _specification),
                       const SizedBox(height: 12),
 
                       // ── Description box ────────────────────────────────
@@ -413,7 +413,7 @@ class _AssignedIncidentViewState extends State<_AssignedIncidentView> {
                                     color: Colors.amber.shade700),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Description',
+                                  'Deskripsyon',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -449,7 +449,7 @@ class _AssignedIncidentViewState extends State<_AssignedIncidentView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Responder/s assigned:',
+                              'Responder/s na-assign:',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.black54,
@@ -545,7 +545,7 @@ class _AssignedIncidentViewState extends State<_AssignedIncidentView> {
                   icon: const Icon(Icons.verified_outlined,
                       color: Colors.white, size: 20),
                   label: const Text(
-                    'Mark as Resolved',
+                    'I-mark bilang natugunan',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

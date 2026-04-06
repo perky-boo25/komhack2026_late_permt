@@ -104,20 +104,13 @@ class ResponderShellState extends State<ResponderShell> {
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: SizedBox(
-              width: 34,
-              height: 34,
+              width: 120,
+              height: 40,
               child: Image.asset('images/logo.png', fit: BoxFit.cover),
             ),
           ),
-          const SizedBox(width: 10),
-          const Text(
-            'Application Name',
-            style: TextStyle(
-              color: Color(0xFF1A1A2E),
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
+          const SizedBox(width: 50),
+
         ],
       ),
       actions: [

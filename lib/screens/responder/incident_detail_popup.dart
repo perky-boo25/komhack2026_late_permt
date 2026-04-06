@@ -488,7 +488,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
     final String descriptionText =
         (widget.alertDescription != null && widget.alertDescription!.isNotEmpty)
             ? widget.alertDescription!
-            : 'No description provided.';
+            : 'Walang detalyeng binigay.';
 
     // Use the responder info fetched from Firestore in initState
     final String responderLabel =
@@ -500,18 +500,18 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Incident Details',
+            'Detalye ng Insidente',
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-          _detailRow('Incident ID', widget.alertId),
-          _detailRow('Date Reported', formatDate(widget.alertDate)),
-          _detailRow('Emergency Type', _title),
-          _detailRow('Time Reported', widget.alertTime),
+          _detailRow('ID ng insidente', widget.alertId),
+          _detailRow('Petsa', formatDate(widget.alertDate)),
+          _detailRow('Uri ng Emergency', _title),
+          _detailRow('Oras naisumite', widget.alertTime),
           _detailRow(
               'Coordinates',
               '${widget.alertLat.toStringAsFixed(4)}, ${widget.alertLng.toStringAsFixed(4)}'),
-          _detailRow('Specification', specValue),
+          _detailRow('Espesipakasyon', specValue),
           const SizedBox(height: 12),
 
           // Description box
@@ -532,7 +532,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
                         size: 14, color: Colors.amber.shade700),
                     const SizedBox(width: 4),
                     Text(
-                      'Description',
+                      'Deskripsyon',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -564,7 +564,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Responder/s assigned:',
+                  'Na-assign na Responder:',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.black54,
@@ -596,7 +596,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
                         child: Text(
                           responderLabel.isNotEmpty
                               ? responderLabel
-                              : 'Responder assigned',
+                              : 'Responder na-assigned',
                           style: const TextStyle(
                               fontSize: 12, color: Colors.black54),
                         ),
@@ -605,7 +605,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
                   )
                 else
                   const Text(
-                    'NOT YET ASSIGNED',
+                    'WALA PANG NA-ASSIGN',
                     style: TextStyle(fontSize: 12, color: Colors.black45),
                   ),
               ],
@@ -684,7 +684,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
                       borderRadius: BorderRadius.circular(12)),
                 ),
                 child: const Text(
-                  'Decline',
+                  'Tanggihan',
                   style: TextStyle(
                       color: Colors.black54,
                       fontWeight: FontWeight.w600,
@@ -740,7 +740,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
                     borderRadius: BorderRadius.circular(12)),
               ),
               child: const Text(
-                'Decline',
+                'Tanggihan',
                 style: TextStyle(
                     color: Colors.black54,
                     fontWeight: FontWeight.w600,
@@ -756,7 +756,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
                   widget.embeddedMode ? widget.onAccept?.call() : Navigator.pop(context),
               icon: const Icon(Icons.check_circle, color: Colors.white),
               label: const Text(
-                'Accept & Respond',
+                'Tugunan',
                 style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,

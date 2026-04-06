@@ -172,24 +172,17 @@ class _MainScreenState extends State<MainScreen> {
         backgroundColor: Colors.white,
         centerTitle: true,
         title: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
           children:  [
             ClipRRect(
               borderRadius: BorderRadius.circular(6), // rounded logo
               child: SizedBox(
-              width: 34,
-              height: 34,
+              width: 120,
+              height: 40,
               child: Image.asset('images/logo.png', fit: BoxFit.cover), // app logo
               ),
             ),
             SizedBox(width: 10),
-            Text(
-              'Application Name',
-              style: TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
           ],
         ),
         bottom: PreferredSize(
