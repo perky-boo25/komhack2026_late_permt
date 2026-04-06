@@ -36,6 +36,7 @@ flutter:
   assets:
     - images/logo.png
     - assets/icon/app_icon.png
+    - assets/sounds/alert1.mp3
 
 # launcher icon config (outside flutter block)
 flutter_launcher_icons:
