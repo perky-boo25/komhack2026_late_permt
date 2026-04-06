@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'services/fcm_service.dart';
 
 // import screens here (one file per screen)
 import 'screens/responder/responder_shell.dart';
@@ -24,6 +25,9 @@ void main() async{
   } catch (e) {
     print("Firebase already initialized or error: $e");
   }
+
+  // initialize fcm (push notifications)
+  await FcmService.instance.initialize();
   
   runApp(const MyApp());
 }
