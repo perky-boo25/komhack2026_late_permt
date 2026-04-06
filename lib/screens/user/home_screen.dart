@@ -575,11 +575,31 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
   final TextEditingController _specCtrl = TextEditingController();
   final TextEditingController _descCtrl = TextEditingController();
 
-  static const List<Map<String, Object>> _types = [
-    {'label': 'Sunog',    'icon': Icons.local_fire_department, 'color': Color(0xFFFF6B35)},
-    {'label': 'Baha',   'icon': Icons.water_drop,            'color': Color(0xFF29B6F6)},
-    {'label': 'Medikal', 'icon': Icons.medical_services,      'color': Color(0xFF43A047)},
-    {'label': 'Iba pa',   'icon': Icons.report_sharp,          'color': Color(0xFF000000)},
+    static const List<Map<String, Object>> _types = [
+    {
+      'value': 'Fire',
+      'label': 'Sunog',
+      'icon': Icons.local_fire_department,
+      'color': Color(0xFFFF6B35)
+    },
+    {
+      'value': 'Flood',
+      'label': 'Baha',
+      'icon': Icons.water_drop,
+      'color': Color(0xFF29B6F6)
+    },
+    {
+      'value': 'Medical',
+      'label': 'Medikal',
+      'icon': Icons.medical_services,
+      'color': Color(0xFF43A047)
+    },
+    {
+      'value': 'Other',
+      'label': 'Iba pa',
+      'icon': Icons.report_sharp,
+      'color': Color(0xFF000000)
+    },
   ];
 
   @override
@@ -664,13 +684,14 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
               crossAxisSpacing: 10,
               childAspectRatio: 1.3,
               children: _types.map((t) {
-                final label      = t['label']! as String;
-                final icon       = t['icon']!  as IconData;
-                final color      = t['color']! as Color;
-                final isSelected = _selectedType == label;
+                final value = t['value']! as String;
+                final label = t['label']! as String;
+                final icon = t['icon']! as IconData;
+                final color = t['color']! as Color;
+                final isSelected = _selectedType == value;
 
                 return GestureDetector(
-                  onTap: () => setState(() => _selectedType = label),
+                  onTap: () => setState(() => _selectedType = value),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
                     decoration: BoxDecoration(
@@ -706,7 +727,7 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
             // Specification — only visible when "Other" is selected
             AnimatedSize(
               duration: const Duration(milliseconds: 200),
-              child: _selectedType == 'Iba pa'
+              child: _selectedType == 'Other'
                   ? Padding(
                       padding: const EdgeInsets.only(top: 12),
                       child: TextField(

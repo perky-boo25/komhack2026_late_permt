@@ -18,6 +18,23 @@ class UserMyReportCard extends StatelessWidget {
     required this.statusColor,
   });
 
+  String _displayType(String type) {
+    switch (type.toLowerCase()) {
+      case 'fire':
+        return 'Sunog';
+      case 'flood':
+        return 'Baha';
+      case 'medical':
+        return 'Medikal';
+      case 'other':
+        return 'Iba pa';
+      case 'emergency':
+        return 'EMERGENCY';
+      default:
+        return type;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -46,7 +63,7 @@ class UserMyReportCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  record.reportType,
+                  _displayType(record.reportType),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
