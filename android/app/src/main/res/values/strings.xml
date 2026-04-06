@@ -1,0 +1,4 @@
+<resources>
+    <!-- app name shown after install -->
+    <string name="app_name">awSOS</string>
+</resources>
