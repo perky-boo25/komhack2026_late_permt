@@ -44,13 +44,25 @@ class TeamsTabState extends State<TeamsTab> {
           itemBuilder: (context, index) {
             final doc = docs[index]; // Use doc to get the ID
             final data = doc.data() as Map<String, dynamic>;
+
+            final String role = data['role'] ?? 'responder';
+            final bool isAdmin = role == 'admin';
+
+
+            if (isAdmin){
+              return const SizedBox.shrink(); //skipp all admins
+            }
             
             return ResponderTile(
               rID: data['responderId'] ?? 'N/A',
               name: data['name'] ?? 'Unknown',
-              loc: data['department'] ?? 'General',
+              loc: data['location'] ?? 'General', // Fixed mapping
               dept: data['department'] ?? 'gen',
               isActive: data['status'] == true,
+              
+              // HIDES ADMIN ONLY FUNCTIONS
+              isAdmin: false,
+              canDelete: false,
             );
           },
         );

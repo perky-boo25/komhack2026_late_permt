@@ -31,119 +31,101 @@ class _ResponderLoginState extends State<ResponderLogin> {
     super.dispose();
   }
 
-  // login flow
-  Future<void> _onLoginPressed() async {
-    setState(() {
-      _errorMessage = null; // clear error
-    });
+  // login flow: FIXED DEAD CODE AND ADJUSTED MESSAGES
+ Future<void> _onLoginPressed() async {
+  setState(() {
+    _errorMessage = null; //clear error message when clicked
+  });
 
-    // empty fields
-    if (_responderId.text.trim().isEmpty || _password.text.trim().isEmpty) {
-      setState(() {
-        _errorMessage = 'Please fill in all required fields.'; // input warning
-      });
+  if (_responderId.text.trim().isEmpty || _password.text.trim().isEmpty) {
+    setState(() {
+      _errorMessage = 'Please fill in all required fields.';
+    });
+    return;
+  }
+
+  setState(() => _isLoading = true);
+
+  try {
+    final password = _password.text.trim();
+    String rawId = _responderId.text.trim().toUpperCase();
+    String digits = rawId.replaceAll(RegExp(r'[^0-9]'), '');
+    String paddedDigits = digits.padLeft(6, '0');
+    final id = 'RSP-$paddedDigits';
+
+    debugPrint('typed id: $id');
+
+    final doc = await FirebaseFirestore.instance
+        .collection('responders')
+        .doc(id)
+        .get();
+
+    debugPrint('doc exists: ${doc.exists}');
+    debugPrint('doc data: ${doc.data()}');
+
+    //is not in responder collection
+    if (!doc.exists) {
+      setState(() => _errorMessage =
+          'Account does not exist. Please contact your supervisor.');
       return;
     }
 
-    setState(() => _isLoading = true); // start loading
+    final data = doc.data();
 
-    try {
-      final password = _password.text.trim(); // clean password
-      String rawId = _responderId.text.trim().toUpperCase();
-      String digits = rawId.replaceAll(RegExp(r'[^0-9]'), '');
-
-      // para walang extra hyphen
-            String paddedDigits = digits.padLeft(6, '0');
-
-      // final ID: RSP-000001
-      final id = 'RSP-$paddedDigits';
-      /* clean id pero will accept inputs like:
-      1
-      001
-      000001
-      RSP001
-      RSP-000-001 
-      */
-
-      // find responder
-      debugPrint('typed id: $id');
-      final doc = await FirebaseFirestore.instance
-          .collection('responders')
-          .doc(id)
-          .get();
-
-      debugPrint('doc exists: ${doc.exists}');
-      debugPrint('doc data: ${doc.data()}');
-
-      final data = doc.data();
-      if (data == null || !data.containsKey('email')) {
-        setState(() => _errorMessage = 'Responder not found. Please try again.');
-        return;
-      }
-        
-
-      // id not found
-      if (!doc.exists) {
-        setState(() => _errorMessage = 'Responder ID not found.'); // wrong id
-        return;
-      }
-
-      // linked email
-      final email = doc['email'] as String; // saved email
-
-      //
-      final role = data['role'] as String? ?? 'responder';
-
-
-
-      // sign in
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      
-      //go dashboard
-      if (mounted) {
-        if (role == 'admin') {
-          //go to tab teams, for admin management
-           Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ManageTab()
-              )
-          );
-        } else {
-          // responder flow
-          Navigator.pushReplacementNamed(context, '/responder-dashboard');
-        }
+    //just to be safe
+    if (data == null || !data.containsKey('email')) {
+      setState(() => _errorMessage =
+          'Account does not exist. Please contact your supervisor.');
+      return;
     }
-      
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        switch (e.code) {
-          case 'wrong-password':
-          case 'invalid-credential':
-            _errorMessage = 'Incorrect password. Please try again.'; // bad password
-            break;
-          case 'user-not-found':
-            _errorMessage = 'No account found for this Responder ID.'; // no account
-            break;
-          case 'too-many-requests':
-            _errorMessage = 'Too many attempts. Please try again later.'; // too many tries
-            break;
-          case 'network-request-failed':
-            _errorMessage = 'Network error. Check your connection.'; // no internet
-            break;
-          default:
-            _errorMessage = 'Login failed. Please try again.'; // login failed
-        }
-      });
-    } catch (e) {
-      setState(() => _errorMessage = 'An unexpected error occurred.'); // fallback error
-    } finally {
-      if (mounted) setState(() => _isLoading = false); // stop loading
+
+    final email = data['email'] as String;
+    final role = data['role'] as String? ?? 'responder';
+
+    await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    if (mounted) {
+      if (role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ManageTab(),
+          ),
+        );
+      } else {
+        Navigator.pushReplacementNamed(context, '/responder-dashboard');
+      }
     }
+
+  } on FirebaseAuthException catch (e) {
+    setState(() {
+      switch (e.code) {
+        //deleted some error messages as it is redundant/unnecessary
+        // case 'wrong-password':
+        //   _errorMessage = 'Incorrect password. Please try again.';
+        //   break;
+        // case 'user-not-found':
+        //   _errorMessage = 'No account found for this Responder ID.';
+        //   break;
+        case 'too-many-requests':
+          _errorMessage = 'Too many attempts. Please try again later.';
+          break;
+        case 'network-request-failed':
+          _errorMessage = 'Network error. Check your connection.';
+          break;
+        default:
+          _errorMessage = 'Login failed. Please try again.';
+      }
+    });
+  } catch (e) {
+    setState(() => _errorMessage = 'An unexpected error occurred.');
+  } finally {
+    if (mounted) setState(() => _isLoading = false);
   }
+}
 
   // test helpers
 
@@ -181,13 +163,21 @@ class _ResponderLoginState extends State<ResponderLogin> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(6), // rounded logo
                     child: SizedBox(
-                      width: 120,
-                      height: 50,
-                      child: Image.asset('images/logo.png', fit: BoxFit.cover), // app logo
+                      width: 34,
+                      height: 34,
+                      child: Image.asset('images/logo.jpg', fit: BoxFit.cover), // app logo
                     ),
                   ),
                   const SizedBox(width: 8), // small gap
-
+                  const Text(
+                    'Application Name', // app name
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: _black,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -241,21 +231,21 @@ class _ResponderLoginState extends State<ResponderLogin> {
                       textAlign: TextAlign.center,
                       text: TextSpan(
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 13,
                           color: Color(0xFF757575),
                           height: 1.5,
                         ),
                         children: [
-                          const TextSpan(text: 'Gamitin ang inyong'), // intro text
+                          const TextSpan(text: 'Use your '), // intro text
                           TextSpan(
-                            text: ' pre-issued credentials', // highlighted text
+                            text: 'pre-issued credentials', // highlighted text
                             style: TextStyle(
                               color: _orange,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           const TextSpan(
-                              text: ' para ma-access ang responder dashboard.'), // subtitle end
+                              text: ' to access the\nresponder dashboard.'), // subtitle end
                         ],
                       ),
                     ),
@@ -320,7 +310,7 @@ class _ResponderLoginState extends State<ResponderLogin> {
                         onPressed: _isLoading ? null : _onLoginPressed, // disable while loading
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _red,
-                          disabledBackgroundColor: _red.withValues(alpha:0.5), // faded red
+                          disabledBackgroundColor: _red.withOpacity(0.5), // faded red
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8), // rounded button
@@ -352,7 +342,7 @@ class _ResponderLoginState extends State<ResponderLogin> {
                     // contact note
                     Center(
                       child: Text(
-                        "Walang credentials? I-kontak ang inyong supervisor.", // help note
+                        "Don't have credentials? Contact your supervisor.", // help note
                         style: const TextStyle(
                           fontSize: 12,
                           color: Color(0xFF9E9E9E),
