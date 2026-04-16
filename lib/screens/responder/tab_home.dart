@@ -213,7 +213,7 @@ class _HomeTabState extends State<HomeTab> {
                       padding: EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12),
                       child: Text(
-                        'No active alerts at the moment.',
+                        'Walang aktibong alerts sa kasalukuyan.',
                         style:
                             TextStyle(fontSize: 14, color: Colors.black45),
                       ),

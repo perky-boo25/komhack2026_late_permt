@@ -75,14 +75,14 @@ class _AlertTabState extends State<AlertTab> {
             Icon(Icons.check_circle_outline, color: Colors.green, size: 22),
             SizedBox(width: 8),
             Text(
-              'Sigurado kana?',
+              'Sigurado?',
               style:
                   TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
             ),
           ],
         ),
         content: const Text(
-          'Sigurado na bang natuganan nang maayos ang report na ito?'
+          'Sigurado na bang natuganan nang maayos ang insidente?'
           ' Hindi na maibabalik ang aksyong ito.',
           style: TextStyle(fontSize: 14, color: Colors.black54),
         ),
@@ -391,7 +391,7 @@ class _AssignedIncidentViewState extends State<_AssignedIncidentView> {
                           formatDate(alert['createdAt'] as DateTime?)),
                       _detailRow('Uri ng Emergency',
                           _title.replaceAll(' Alert', '')),
-                      _detailRow('Oras naisumite', _time),
+                      _detailRow('Oras na naisumite', _time),
                       _detailRow('Espesipikasyon', _specification),
                       const SizedBox(height: 12),
 
@@ -451,7 +451,7 @@ class _AssignedIncidentViewState extends State<_AssignedIncidentView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Responder/s na-assign:',
+                              'Responder/s na na-assign:',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.black54,
@@ -487,7 +487,7 @@ class _AssignedIncidentViewState extends State<_AssignedIncidentView> {
                                   child: Text(
                                     responderLabel.isNotEmpty
                                         ? responderLabel
-                                        : 'Responder assigned',
+                                        : 'Responder na na-assign',
                                     style: const TextStyle(
                                         fontSize: 12,
                                         color: Colors.black54),

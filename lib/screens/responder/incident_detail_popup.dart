@@ -55,12 +55,12 @@ class IncidentDetailPopup extends StatelessWidget {
       return AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
-          'Already Assigned',
+          'Naka-assign na',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         content: const Text(
-          'You currently have an active incident. '
-          'Complete or decline it before accepting another.',
+          'Mayroon ka nang tinutugunang insidente.'
+          'Tapusin muna bago tumanggap ng ibang report.',
         ),
         actions: [TextButton(onPressed: onDecline, child: const Text('OK'))],
       );
@@ -507,7 +507,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
           _detailRow('ID ng insidente', widget.alertId),
           _detailRow('Petsa', formatDate(widget.alertDate)),
           _detailRow('Uri ng Emergency', _title),
-          _detailRow('Oras naisumite', widget.alertTime),
+          _detailRow('Oras na naisumite', widget.alertTime),
           _detailRow(
               'Coordinates',
               '${widget.alertLat.toStringAsFixed(4)}, ${widget.alertLng.toStringAsFixed(4)}'),
@@ -708,7 +708,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
                         color: Colors.grey.shade400, size: 16),
                     const SizedBox(width: 6),
                     Text(
-                      'Already Assigned',
+                      'Naka-assign na',
                       style: TextStyle(
                         color: Colors.grey.shade400,
                         fontWeight: FontWeight.w600,
