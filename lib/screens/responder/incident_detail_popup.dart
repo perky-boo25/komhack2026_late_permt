@@ -83,7 +83,6 @@ class IncidentDetailPopup extends StatelessWidget {
           alertDescription: alertDescription,
           alertSpecification: alertSpecification,
           isAccepted: isInProgress,
-          isAlreadyAssigned: isAlreadyAssigned,
           isResolved: isResolved,
           embeddedMode: true,
           onAccept: onAccept,
@@ -111,7 +110,6 @@ class IncidentDetailScreen extends StatefulWidget {
   final String? alertDescription;
   final String? alertSpecification;
   final bool isAccepted;
-  final bool isAlreadyAssigned;
   final bool isResolved;
   final bool embeddedMode;
   final VoidCallback? onAccept;
@@ -129,7 +127,6 @@ class IncidentDetailScreen extends StatefulWidget {
     this.alertDescription,
     this.alertSpecification,
     required this.isAccepted,
-    this.isAlreadyAssigned = false,
     this.isResolved = false,
     this.embeddedMode = false,
     this.onAccept,
@@ -670,8 +667,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
       );
     }
 
-    // Already on another incident OR this alert is in progress → disabled Tugunan
-    if (widget.isAccepted || widget.isAlreadyAssigned) {
+    if (widget.isAccepted) {
       return Container(
         color: Colors.white,
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
@@ -728,7 +724,6 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
       );
     }
 
-    // Normal state → active Tugunan button
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
