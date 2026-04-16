@@ -50,22 +50,6 @@ class IncidentDetailPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Responder already on a call → simple notice
-    if (isAlreadyAssigned && !isInProgress && !isResolved) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Naka-assign na',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          'Mayroon ka nang tinutugunang insidente.'
-          'Tapusin muna bago tumanggap ng ibang report.',
-        ),
-        actions: [TextButton(onPressed: onDecline, child: const Text('OK'))],
-      );
-    }
-
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -83,6 +67,7 @@ class IncidentDetailPopup extends StatelessWidget {
           alertDescription: alertDescription,
           alertSpecification: alertSpecification,
           isAccepted: isInProgress,
+          isAlreadyAssigned: isAlreadyAssigned,
           isResolved: isResolved,
           embeddedMode: true,
           onAccept: onAccept,
@@ -110,6 +95,7 @@ class IncidentDetailScreen extends StatefulWidget {
   final String? alertDescription;
   final String? alertSpecification;
   final bool isAccepted;
+  final bool isAlreadyAssigned;
   final bool isResolved;
   final bool embeddedMode;
   final VoidCallback? onAccept;
@@ -127,6 +113,7 @@ class IncidentDetailScreen extends StatefulWidget {
     this.alertDescription,
     this.alertSpecification,
     required this.isAccepted,
+    this.isAlreadyAssigned = false,
     this.isResolved = false,
     this.embeddedMode = false,
     this.onAccept,
@@ -667,7 +654,8 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
       );
     }
 
-    if (widget.isAccepted) {
+    // Already on another incident OR this alert is in progress → disabled Tugunan
+    if (widget.isAccepted || widget.isAlreadyAssigned) {
       return Container(
         color: Colors.white,
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
@@ -708,7 +696,9 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
                         color: Colors.grey.shade400, size: 16),
                     const SizedBox(width: 6),
                     Text(
-                      'Naka-assign na',
+                      widget.isAlreadyAssigned
+                          ? 'May Aktibong Alert'
+                          : 'Already Assigned',
                       style: TextStyle(
                         color: Colors.grey.shade400,
                         fontWeight: FontWeight.w600,
@@ -723,6 +713,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
         ),
       );
     }
+
 
     return Container(
       color: Colors.white,
