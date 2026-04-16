@@ -36,6 +36,7 @@ flutter:
 
   assets:
     - images/logo.png
+    - images/logo2.png
     - assets/icon/app_icon.png
     - assets/sounds/alert1.mp3
 

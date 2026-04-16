@@ -165,7 +165,7 @@ Future<void> _onLoginPressed() async {
                     child: SizedBox(
                       width: 120,
                       height: 50,
-                      child: Image.asset('images/logo.png', fit: BoxFit.cover), // app logo
+                      child: Image.asset('images/logo2.png', fit: BoxFit.cover), // app logo
                     ),
                   ),
                   const SizedBox(width: 8), // small gap
