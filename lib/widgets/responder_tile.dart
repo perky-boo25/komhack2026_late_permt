@@ -10,7 +10,7 @@ class ResponderTile extends StatelessWidget {
   final String? creatorResponderId;
   final VoidCallback? onDelete;
   
-  final dynamic isAdmin;
+  final bool isAdmin;
 
   const ResponderTile({
     super.key,
@@ -85,14 +85,17 @@ class ResponderTile extends StatelessWidget {
             Text(loc, style: const TextStyle(fontSize: 12)),
             //  ADMIN LINE
             const SizedBox(height: 2),
-            Text(
-              'Admin: $creatorResponderId',
-              style: TextStyle(
-                fontSize: 11,
-                color: canDelete ? Colors.grey.shade500 : Colors.grey.shade400,
-                fontStyle: FontStyle.italic,
+            if (isAdmin && creatorResponderId != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                'Admin: $creatorResponderId',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: canDelete ? Colors.grey.shade500 : Colors.grey.shade400,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
-            ),
+            ],
           ],
         ),
         trailing: Row(
@@ -119,7 +122,7 @@ class ResponderTile extends StatelessWidget {
               ),
             ),
 
-            if (!isAdmin) ...[
+            if (isAdmin) ...[
               const SizedBox(width: 8),
               if (canDelete)
                 IconButton(
@@ -127,13 +130,9 @@ class ResponderTile extends StatelessWidget {
                   constraints: const BoxConstraints(),
                   icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
                   onPressed: onDelete,
-                  tooltip: 'Delete responder',
                 )
               else
-                Tooltip(
-                  message: "Created by another admin",
-                  child: Icon(Icons.lock_outline, color: Colors.grey.shade400, size: 18),
-                ),
+                Icon(Icons.lock_outline, color: Colors.grey.shade400, size: 18),
             ],
           ],
         ),
