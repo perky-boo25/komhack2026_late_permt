@@ -85,7 +85,7 @@ Widget _buildResponderList() {
       final List<QueryDocumentSnapshot> docs = snapshot.data!.docs;
       if (docs.isEmpty) return const Center(child: Text("No responders registered yet."));
 
-      // ✅ Build a UID -> responderId lookup map from the same snapshot
+      //  
       final Map<String, String> uidToResponderId = {
         for (final d in docs)
           if ((d.data() as Map<String, dynamic>)['uid'] != null)
@@ -112,7 +112,7 @@ Widget _buildResponderList() {
 
 
           if (role == 'admin'){
-            return const SizedBox.shrink(); //skipp all admins 
+            return const SizedBox.shrink(); //skipp all admins
           }
 
           return ResponderTile(
@@ -121,13 +121,14 @@ Widget _buildResponderList() {
             loc: data['department'] ?? 'General',
             dept: data['department'] ?? 'gen',
             isActive: data['status'] == true,
-            isAdmin: isAdmin,
-            canDelete: canDelete,
-            creatorResponderId: isAdmin ? null : creatorResponderId,
-            onDelete: canDelete
-                ? () => _deleteResponder(doc.id, data['name'] ?? 'Unknown', createdBy)
-                : null,
-          );
+            isAdmin: true,  //true in the first place
+  
+              canDelete: canDelete,
+              creatorResponderId: creatorResponderId,
+              onDelete: canDelete
+                  ? () => _deleteResponder(doc.id, data['name'] ?? 'Unknown', createdBy)
+                  : null,
+            );
         },
       );
     },
