@@ -6,6 +6,8 @@ import 'my_reports_screen.dart';
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 const Color _kActiveColor = Color(0xFF000000);
 
@@ -24,8 +26,7 @@ class _MainScreenState extends State<MainScreen> {
   bool isSafe = false;
 
 
-  final String userId = '2026-12345';
-  bool _hasInternet(List<ConnectivityResult> result) {
+  String get userId => FirebaseAuth.instance.currentUser?.uid ?? 'unknown';  bool _hasInternet(List<ConnectivityResult> result) {
   return result.contains(ConnectivityResult.mobile) ||
          result.contains(ConnectivityResult.wifi) ||
          result.contains(ConnectivityResult.ethernet) ||

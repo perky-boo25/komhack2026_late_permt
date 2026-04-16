@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'dart:ui' as ui;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -246,7 +247,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     String description   = '',
   }) async {
     try {
+    //   final user = FirebaseAuth.instance.currentUser;
+    //
+    //   // check f the user is null, they aren't authorized if so
+    //   if (user == null) {
+    //     debugPrint("Cannot save: User is not authenticated.");
+    //     return null;
+    //   }
       return await FirebaseFirestore.instance.collection('incidents').add({
+        // 'userId':        user.uid,
+        'userId': FirebaseAuth.instance.currentUser?.uid,
         'reportType':    type,
         'barangay':      _locationLabel,
         'street':        _streetLabel,
@@ -260,6 +270,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         'createdAt':     FieldValue.serverTimestamp(),
       });
     } catch (e) {
+      debugPrint("Error saving report: $e");
       return null;
     }
   }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/report_record.dart';
 import '../../widgets/user_my_report_card.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class MyReportsScreen extends StatelessWidget {
   const MyReportsScreen({super.key});
@@ -20,6 +21,8 @@ class MyReportsScreen extends StatelessWidget {
       case 'medical':
         return Icons.medical_services;
       case 'other':
+
+
         return Icons.report_sharp;
       default:
         return Icons.info_outline;
@@ -68,6 +71,7 @@ class MyReportsScreen extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('incidents')
+          .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid) //filter so that it reports fetch are unique fromm user to user
           .orderBy('createdAt', descending: true)
           .snapshots(),      builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
