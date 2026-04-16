@@ -239,14 +239,26 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
 
   String       _status        = '';
   String       _sentTime      = '';
+  String       _sentDate      = '';
   String       _specification = '';
   String       _description   = '';
+
+  static String _formatTimestamp(dynamic ts) {
+    if (ts is! Timestamp) return '';
+    final dt = ts.toDate();
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+  }
 
   @override
   void initState() {
     super.initState();
     _status        = widget.record.status.toUpperCase();
     _sentTime      = widget.record.time;
+    _sentDate      = widget.record.date;
     _specification = widget.record.specification;
     _description   = widget.record.description;
 
@@ -260,6 +272,7 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
       setState(() {
         _status        = (data['status']        as String? ?? _status).toUpperCase();
         _sentTime      =  data['time']          as String? ?? _sentTime;
+        _sentDate      =  _formatTimestamp(data['createdAt']);
         _specification =  data['specification'] as String? ?? '';
         _description   =  data['description']  as String? ?? '';
       });
@@ -276,11 +289,11 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
     if (_status == 'ACKNOWLEDGED' || _status == 'IN_PROGRESS' || _status == 'IN PROGRESS') return 'IN PROGRESS';
     return _status;
   }
+  
+  // bool get _isActive =>
+  //     _normalizedStatus == 'IN PROGRESS' || _normalizedStatus == 'RESOLVED';
 
-  bool get _isActive =>
-      _normalizedStatus == 'IN PROGRESS' || _normalizedStatus == 'RESOLVED';
-
-  bool get _isResolved => _normalizedStatus == 'RESOLVED';
+  // bool get _isResolved => _normalizedStatus == 'RESOLVED';
 
   Color get _statusDotColor {
     switch (_normalizedStatus) {
@@ -298,17 +311,9 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
     }
   }
 
-  Color get _bgColor {
-    if (_isResolved)  return const Color(0xFFF0FFF4); // light green tint
-    if (_isActive)    return const Color(0xFFFFFBF0); // light amber tint
-    return const Color(0xFFFFF0F0);                   // default red tint
-  }
+  Color get _bgColor => const Color(0xFFF5F5F5); // light gray for all statuses
 
-  Color get _accentColor {
-    if (_isResolved) return Colors.green;
-    if (_isActive)   return Colors.orange;
-    return Colors.red;
-  }
+  Color get _accentColor => const Color(0xFF424242); // neutral dark for all statuses
 
   IconData _iconForType(String type) {
     switch (type.toLowerCase()) {
@@ -412,9 +417,7 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: _isActive
-                        ? _accentColor
-                        : const Color(0xFFEEEEEE),
+                    color: const Color(0xFFE0E0E0),
                     width: 1.4,
                   ),
                 ),
@@ -477,7 +480,7 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
               _row('ID ng insidente',
                   '#${widget.record.incidentId.substring(0, min(10, widget.record.incidentId.length))}'),
               _row('Uri ng Emergency', type),
-              _row('Status', _normalizedStatus),
+              _row('Petsa', _sentDate.isNotEmpty ? _sentDate : '–'),
               _row('Espesipikasyon',
                   _specification.isNotEmpty ? _specification : '–'),
               _row('Deskripsyon',

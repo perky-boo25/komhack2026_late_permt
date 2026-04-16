@@ -118,7 +118,7 @@ class ResponderShellState extends State<ResponderShell> {
             child: SizedBox(
               width: 120,
               height: 40,
-              child: Image.asset('images/logo.png', fit: BoxFit.cover),
+              child: Image.asset('images/logo2.png', fit: BoxFit.cover),
             ),
           ),
           const SizedBox(width: 50),

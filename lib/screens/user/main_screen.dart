@@ -187,7 +187,7 @@ class _MainScreenState extends State<MainScreen> {
               child: SizedBox(
               width: 120,
               height: 40,
-              child: Image.asset('images/logo.png', fit: BoxFit.cover), // app logo
+              child: Image.asset('images/logo2.png', fit: BoxFit.cover), // app logo
               ),
             ),
             SizedBox(width: 10),
