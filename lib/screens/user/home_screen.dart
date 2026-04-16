@@ -88,7 +88,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Timer? _cooldownTimer;
   int    _cooldownSecondsLeft = 0;
 
-  bool   get _isCoolingDown => _cooldownSecondsLeft > 0;
+  bool   get _isCoolingDown   => _cooldownSecondsLeft > 0;
+
+  /// True when location was fetched but the user is outside Panay Island.
+  bool   get _isOutsidePanay  =>
+      !_locationLoading && _locationError &&
+      _locationLabel == 'Out of bounds';
 
   String get _cooldownLabel {
     final m = _cooldownSecondsLeft ~/ 60;
@@ -437,7 +442,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 animation: _progressController!,
                 builder: (context, child) {
                   final progress = _progressController!.value;
-                  final disabled = _isCoolingDown;
+                  final disabled = _isCoolingDown || _isOutsidePanay || _locationLoading;
                   final btnColor = disabled ? Colors.grey : Colors.red;
 
                   return GestureDetector(
@@ -496,7 +501,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             const SizedBox(height: 28),
 
             // ── Hint / cooldown label ──────────────────────────────────────
-            if (_isCoolingDown)
+            if (_locationLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: 24, height: 24,
+                    ),
+                    SizedBox(height: 8),
+                    SizedBox(height: 4),
+                  ],
+                ),
+              )
+            else if (_isCoolingDown)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
@@ -507,6 +525,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
+                ),
+              )
+            else if (_isOutsidePanay)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    Icon(Icons.location_off, color: Colors.grey, size: 28),
+                    SizedBox(height: 6),
+                    Text(
+                      'Hindi available sa labas ng Panay',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                  ],
                 ),
               )
             else ...[
