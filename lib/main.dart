@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'services/fcm_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 // import screens here (one file per screen)
 import 'screens/responder/responder_shell.dart';
@@ -26,6 +27,15 @@ void main() async{
     }
   } catch (e) {
     print("Firebase already initialized or error: $e");
+  }
+
+  if (FirebaseAuth.instance.currentUser == null) {
+    try {
+      await FirebaseAuth.instance.signInAnonymously();
+      print("User signed in anonymously: ${FirebaseAuth.instance.currentUser?.uid}");
+    } catch (e) {
+      print("Error signing in anonymously: $e");
+    }
   }
 
   // initialize fcm (push notifications)

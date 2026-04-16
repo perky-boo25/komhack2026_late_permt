@@ -453,7 +453,7 @@ Future<void> _onLoginPressed() async {
     */
 }
 
-// error banner
+// error banner`
 class _ErrorBanner extends StatelessWidget {
   final String message; // error text
   final VoidCallback onDismiss; // close action
