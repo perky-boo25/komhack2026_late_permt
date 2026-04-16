@@ -330,16 +330,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     String description   = '',
   }) async {
     try {
-    //   final user = FirebaseAuth.instance.currentUser;
+      final user = FirebaseAuth.instance.currentUser;
     //
     //   // check f the user is null, they aren't authorized if so
-    //   if (user == null) {
-    //     debugPrint("Cannot save: User is not authenticated.");
-    //     return null;
-    //   }
+      if (user == null) {
+        debugPrint("Cannot save: User is not authenticated.");
+        return null;
+      }
       return await FirebaseFirestore.instance.collection('incidents').add({
-        // 'userId':        user.uid,
-        'userId': FirebaseAuth.instance.currentUser?.uid,
+        'userId':        user.uid,
+        // 'userId': FirebaseAuth.instance.currentUser?.uid,
         'reportType':    type,
         'barangay':      _locationLabel,
         'street':        _streetLabel,
