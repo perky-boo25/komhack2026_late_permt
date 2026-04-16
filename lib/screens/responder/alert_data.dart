@@ -95,9 +95,10 @@ Map<String, dynamic> incidentFromDoc(DocumentSnapshot<Map<String, dynamic>> doc)
   final barangay = (data['barangay'] as String? ?? '').trim();
   final street   = (data['street']   as String? ?? '').trim();
   final location = barangay.isNotEmpty && street.isNotEmpty
-      ? 'Brgy. $barangay, $street'
+      ? '$barangay, $street'
       : barangay.isNotEmpty
-          ? 'Brgy. $barangay'
+          // ignore: unnecessary_string_interpolations
+          ? '$barangay'
           : street.isNotEmpty
               ? street
               : 'Unknown location';
