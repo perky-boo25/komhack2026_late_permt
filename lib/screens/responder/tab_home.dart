@@ -154,10 +154,20 @@ class _HomeTabState extends State<HomeTab> {
       builder: (context, activeSnap) {
         final activeAlerts = activeSnap.data ?? [];
         // Sort: 'respond' floats to top
+        // Sort: 'respond' floats to top, then newest first within each group
         final sorted = [...activeAlerts]..sort((a, b) {
             final aScore = a['status'] == 'respond' ? 0 : 1;
             final bScore = b['status'] == 'respond' ? 0 : 1;
-            return aScore.compareTo(bScore);
+            final statusCmp = aScore.compareTo(bScore);
+            if (statusCmp != 0) return statusCmp;
+
+            // ── secondary: newer alerts first ──
+            final aTime = a['createdAt'] as DateTime?;
+            final bTime = b['createdAt'] as DateTime?;
+            if (aTime == null && bTime == null) return 0;
+            if (aTime == null) return 1;
+            if (bTime == null) return -1;
+            return bTime.compareTo(aTime); // descending
           });
 
         return StreamBuilder<List<Map<String, dynamic>>>(
