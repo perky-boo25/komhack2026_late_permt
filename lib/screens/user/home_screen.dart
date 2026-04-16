@@ -252,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         setState(() {
           _locationLoading = false;
           _locationError   = true;
-          _locationLabel   = 'Wala ka sa Panay Island';
+          _locationLabel   = 'Out of bounds';
         });
         return;
       }
