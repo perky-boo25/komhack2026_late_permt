@@ -82,7 +82,7 @@ class MyReportsScreen extends StatelessWidget {
 
         if (snapshot.hasError) {
           return const Center(
-            child: Text('Error in loading reports.'),
+            child: Text('Error sa pag-load.'),
           );
         }
 
@@ -126,7 +126,7 @@ class MyReportsScreen extends StatelessWidget {
                     ? [
                   const Padding(
                     padding: EdgeInsets.all(16),
-                    child: Text('Nothing to show here.'),
+                    child: Text('Wala pa.'),
                   ),
                 ]
                     : ongoingReports.map((r) {
@@ -154,7 +154,7 @@ class MyReportsScreen extends StatelessWidget {
                     ? [
                   const Padding(
                     padding: EdgeInsets.all(16),
-                    child: Text('No resolved reports yet.'),
+                    child: Text('Wala pa.'),
                   ),
                 ]
                     : resolvedReports.map((r) {
@@ -453,7 +453,7 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
                     if (_sentTime.isNotEmpty) ...[
                       const SizedBox(height: 6),
                       Text(
-                        'Oras naisumite: $_sentTime',
+                        'Oras na naisumite: $_sentTime',
                         style: const TextStyle(fontSize: 12, color: Colors.black54),
                       ),
                     ],
@@ -481,7 +481,7 @@ class _ReportDetailDialogState extends State<_ReportDetailDialog> {
                   '#${widget.record.incidentId.substring(0, min(10, widget.record.incidentId.length))}'),
               _row('Uri ng Emergency', type),
               _row('Petsa', _sentDate.isNotEmpty ? _sentDate : '–'),
-              _row('Espesipikasyon',
+              _row('Detalye',
                   _specification.isNotEmpty ? _specification : '–'),
               _row('Deskripsyon',
                   _description.isNotEmpty ? _description : '–'),

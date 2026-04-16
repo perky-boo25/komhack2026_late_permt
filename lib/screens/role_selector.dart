@@ -49,9 +49,9 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
 
                 // tagline
                 const Text(
-                  'Mabuhay!',
+                  '',
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 18,
                     color: Color(0xFF9E9E9E),
                     letterSpacing: 0.3,
                   ),

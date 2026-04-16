@@ -253,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         setState(() {
           _locationLoading = false;
           _locationError   = true;
-          _locationLabel   = 'Out of bounds';
+          _locationLabel   = 'Wala ka sa Panay Island';
         });
         return;
       }
@@ -518,7 +518,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
-                  'Next report available in: $_cooldownLabel',
+                  'Makaka-report muli sa loob ng: $_cooldownLabel',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.redAccent,
@@ -549,7 +549,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               )
             else ...[
               const Text(
-                'I-hold para magsend ng SOS signal',
+                'I-hold para mag-send ng SOS signal',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.black,
@@ -558,7 +558,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
               ),
               const Text(
-                'I-tap para magreport ng insidente',
+                'I-tap para mag-report ng insidente',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.black54, fontSize: 19),
               ),
@@ -636,7 +636,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
             SizedBox(width: 8),
             Text(
-              'Detecting location...',
+              'Inaalam ang iyong lokasyon...',
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ],
@@ -779,7 +779,7 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
                   ),
                   const SizedBox(width: 8),
                   const Text(
-                    'I-KUMPIRMA AND REPORT',
+                    'IKUMPIRMA AND REPORT',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
                   ),
                 ],
@@ -788,7 +788,7 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
             const SizedBox(height: 4),
             const Center(
               child: Text(
-                'Sigurado ka bang gusto mo magreport?',
+                'Sigurado ka ba sa report?',
                 style: TextStyle(fontSize: 15, color: Colors.black54),
               ),
             ),
@@ -923,7 +923,7 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
                     ),
                     onPressed: _cancel,
                     child: const Text(
-                      'I-KANSELA',
+                      'IKANSELA',
                       style: TextStyle(
                           color: Colors.black87,
                           fontWeight: FontWeight.w700),
@@ -992,14 +992,14 @@ class _HoldConfirmDialog extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 const Text( 
-                  'I-KUMPIRMA ANG REPORT',
+                  'IKUMPIRMA ANG REPORT',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                 ),
               ],
             ),
             const SizedBox(height: 8), 
             const Text(
-              'Sigurado ka bang gusto mo magreport?',
+              'Sigurado ka bang gusto mo mag-report?',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13, color: Colors.black54),
             ),
@@ -1237,7 +1237,7 @@ class _SignalSentDialogState extends State<_SignalSentDialog> {
                   if (_sentTime.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
-                      'Oras naisumite: $_sentTime',
+                      'Oras na naisumite: $_sentTime',
                       style: const TextStyle(
                           fontSize: 15, color: Colors.black54),
                     ),
@@ -1263,7 +1263,7 @@ class _SignalSentDialogState extends State<_SignalSentDialog> {
                 '#${widget.incidentId.substring(0, min(10, widget.incidentId.length))}'),
             _row('Uri ng Emergency', widget.emergencyType),
             _row('Petsa', _sentDate.isNotEmpty ? _sentDate : '–'),
-            _row('Espesipikasyon',
+            _row('Detalye',
                 _specification.isNotEmpty ? _specification : '–'),
             _row('Deskripsyon',
                 _description.isNotEmpty ? _description : '–'),
@@ -1273,7 +1273,7 @@ class _SignalSentDialogState extends State<_SignalSentDialog> {
             // Cooldown countdown
             if (_secondsLeft > 0)
               Text(
-                'Makakareport uli sa: $_cooldownLabel',
+                'Makaka-report muli sa loob ng: $_cooldownLabel',
                 style: const TextStyle(
                     fontSize: 15, color: Colors.black45),
               ),
