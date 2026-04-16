@@ -310,7 +310,7 @@ Future<void> _onLoginPressed() async {
                         onPressed: _isLoading ? null : _onLoginPressed, // disable while loading
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _red,
-                          disabledBackgroundColor: _red.withOpacity(0.5), // faded red
+                          disabledBackgroundColor: _red.withValues(alpha: 0.5), // faded red
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8), // rounded button
