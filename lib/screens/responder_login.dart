@@ -32,7 +32,7 @@ class _ResponderLoginState extends State<ResponderLogin> {
   }
 
   // login flow: FIXED DEAD CODE AND ADJUSTED MESSAGES
- Future<void> _onLoginPressed() async {
+Future<void> _onLoginPressed() async {
   setState(() {
     _errorMessage = null; //clear error message when clicked
   });
@@ -163,21 +163,21 @@ class _ResponderLoginState extends State<ResponderLogin> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(6), // rounded logo
                     child: SizedBox(
-                      width: 34,
-                      height: 34,
-                      child: Image.asset('images/logo.jpg', fit: BoxFit.cover), // app logo
+                      width: 120,
+                      height: 50,
+                      child: Image.asset('images/logo.png', fit: BoxFit.cover), // app logo
                     ),
                   ),
                   const SizedBox(width: 8), // small gap
-                  const Text(
-                    'Application Name', // app name
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: _black,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
+                  // const Text(
+                  //   'Application Name', // app name
+                  //   style: TextStyle(
+                  //     fontSize: 17,
+                  //     fontWeight: FontWeight.w700,
+                  //     color: _black,
+                  //     letterSpacing: 0.3,
+                  //   ),
+                  // ),
                 ],
               ),
             ),
@@ -236,16 +236,16 @@ class _ResponderLoginState extends State<ResponderLogin> {
                           height: 1.5,
                         ),
                         children: [
-                          const TextSpan(text: 'Use your '), // intro text
+                          const TextSpan(text: 'Gamitin ang inyong '), // intro text
                           TextSpan(
-                            text: 'pre-issued credentials', // highlighted text
+                            text: ' pre-issued credentials', // highlighted text
                             style: TextStyle(
                               color: _orange,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           const TextSpan(
-                              text: ' to access the\nresponder dashboard.'), // subtitle end
+                              text: ' para ma-access ang responder dashboard.'), // subtitle end
                         ],
                       ),
                     ),
@@ -342,7 +342,7 @@ class _ResponderLoginState extends State<ResponderLogin> {
                     // contact note
                     Center(
                       child: Text(
-                        "Don't have credentials? Contact your supervisor.", // help note
+                        "Walang credentials? I-kontak ang inyong supervisor", // help note
                         style: const TextStyle(
                           fontSize: 12,
                           color: Color(0xFF9E9E9E),
