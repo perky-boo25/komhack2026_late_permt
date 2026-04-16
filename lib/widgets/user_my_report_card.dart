@@ -71,14 +71,16 @@ class UserMyReportCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  record.barangay,
+                  '${record.street}, ${record.barangay}',
                   style: const TextStyle(
                     fontSize: 14,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  record.time,
+                  record.date.isNotEmpty
+                      ? '${record.time}  •  ${record.date}'
+                      : record.time,
                   style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black54,

@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'dart:ui' as ui;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -19,18 +20,46 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 const Duration _kCooldown     = Duration(minutes: 3);
 const Duration _kHoldDuration = Duration(seconds: 3);
 
+const List<List<double>> _kPanayPolygon = [
+  [121.838899, 12.064466], 
+  [123.410848, 11.638368],
+  [123.122122, 11.045237],
+  [122.741738, 10.752719],
+  [121.705994, 10.139773],
+  [121.838899, 12.064466],
+];
+
+/// Ray-casting algorithm — returns true when [lat],[lon] is inside Panay.
+bool _isInsidePanay(double lat, double lon) {
+  int crosses = 0;
+  final n = _kPanayPolygon.length;
+  for (int i = 0, j = n - 1; i < n; j = i++) {
+    final xi = _kPanayPolygon[i][0], yi = _kPanayPolygon[i][1];
+    final xj = _kPanayPolygon[j][0], yj = _kPanayPolygon[j][1];
+    if (((yi > lat) != (yj > lat)) &&
+        (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi)) {
+      crosses++;
+    }
+  }
+  return crosses.isOdd;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // HomeScreen widget
 // ─────────────────────────────────────────────────────────────────────────────
 
 class HomeScreen extends StatefulWidget {
-  final ValueChanged<bool>?   onGpsChanged;
-  final ValueChanged<String>? onBarangayDetected;
+  final ValueChanged<bool>?      onGpsChanged;
+  final ValueChanged<String>?    onBarangayDetected;
+  final DateTime?                cooldownDeadline;
+  final ValueChanged<DateTime>?  onCooldownStarted;
 
   const HomeScreen({
     super.key,
     this.onGpsChanged,
     this.onBarangayDetected,
+    this.cooldownDeadline,
+    this.onCooldownStarted,
   });
 
   @override
@@ -81,6 +110,33 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           });
     _controllersReady = true;
     _fetchLocation();
+    _restoreCooldown(); // restore timer if we came back from role selector
+  }
+
+  // Restores the cooldown from shared_preferences (survives full nav stack destruction)
+  Future<void> _restoreCooldown() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedMs = prefs.getInt('sos_cooldown_deadline_ms');
+    if (savedMs == null) return;
+    final deadline = DateTime.fromMillisecondsSinceEpoch(savedMs);
+    final remaining = deadline.difference(DateTime.now()).inSeconds;
+    if (remaining <= 0) {
+      await prefs.remove('sos_cooldown_deadline_ms');
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _cooldownSecondsLeft = remaining);
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return;
+      setState(() {
+        _cooldownSecondsLeft--;
+        if (_cooldownSecondsLeft <= 0) {
+          _cooldownSecondsLeft = 0;
+          t.cancel();
+          prefs.remove('sos_cooldown_deadline_ms');
+        }
+      });
+    });
   }
 
   @override
@@ -92,9 +148,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // ── Cooldown ───────────────────────────────────────────────────────────────
 
-  void _startCooldown() {
+  Future<void> _startCooldown() async {
     _cooldownSecondsLeft = _kCooldown.inSeconds;
     _cooldownTimer?.cancel();
+
+    // Persist deadline FIRST before starting the timer
+    final deadline = DateTime.now().add(_kCooldown);
+    widget.onCooldownStarted?.call(deadline);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('sos_cooldown_deadline_ms', deadline.millisecondsSinceEpoch);
+
+    if (!mounted) return;
+
     _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
       setState(() {
@@ -102,6 +167,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         if (_cooldownSecondsLeft <= 0) {
           _cooldownSecondsLeft = 0;
           t.cancel();
+          prefs.remove('sos_cooldown_deadline_ms'); // clean up when done
         }
       });
     });
@@ -174,6 +240,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       final Position pos = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
+
+      // ── Panay Island geofence ──────────────────────────────────────────────
+      if (!_isInsidePanay(pos.latitude, pos.longitude)) {
+        widget.onGpsChanged?.call(false);
+        setState(() {
+          _locationLoading = false;
+          _locationError   = true;
+          _locationLabel   = 'You are not in Panay Island';
+        });
+        return;
+      }
+      // ───────────────────────────────────────────────────────────────────────
+
       final latlng  = LatLng(pos.latitude, pos.longitude);
       final address = await _reverseGeocode(pos.latitude, pos.longitude);
 
@@ -283,8 +362,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
     if (docRef == null || !mounted) return;
 
-    _startCooldown();
+    await _startCooldown();
 
+    if (!mounted) return;
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -311,8 +391,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final docRef = await _saveReport(type: 'EMERGENCY');
     if (docRef == null || !mounted) return;
 
-    _startCooldown();
+    await _startCooldown();
 
+    if (!mounted) return;
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -625,7 +706,7 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFE0E0E0),
+          color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(20),
         ),
         child: SingleChildScrollView(
@@ -701,8 +782,8 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
                         width: isSelected ? 2.2 : 1.2,
                       ),
                       color: isSelected
-                          ? color.withOpacity(0.07)
-                          : Colors.white,
+                          ? color.withOpacity(0.18)
+                          : const Color.fromARGB(255, 255, 255, 255),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -737,7 +818,7 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
                           hintStyle: const TextStyle(
                               color: Colors.black38, fontSize: 15),
                           filled: true,
-                          fillColor: const Color(0xFFF5F5F5),
+                          fillColor: const Color.fromARGB(255, 255, 255, 255),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: BorderSide.none,
@@ -767,7 +848,7 @@ class _EmergencyTypeDialogState extends State<_EmergencyTypeDialog> {
                 hintStyle: const TextStyle(
                     color: Colors.black38, fontSize: 13),
                 filled: true,
-                fillColor: const Color(0xFFF5F5F5),
+                fillColor: const Color.fromARGB(255, 255, 255, 255),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide.none,
@@ -843,7 +924,7 @@ class _HoldConfirmDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFE0E0E0),
+          color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(20),
         ),
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
@@ -946,6 +1027,7 @@ class _SignalSentDialogState extends State<_SignalSentDialog> {
 
   String       _status        = 'PENDING';
   String       _sentTime      = '';
+  String       _sentDate      = '';
   String       _specification = '';
   String       _description   = '';
   int          _secondsLeft   = 0;
@@ -970,9 +1052,23 @@ class _SignalSentDialogState extends State<_SignalSentDialog> {
         .listen((snap) {
       if (!snap.exists || !mounted) return;
       final data = snap.data()!;
+
+      // Derive a readable date from createdAt Timestamp
+      String dateStr = '';
+      final createdAt = data['createdAt'];
+      if (createdAt is Timestamp) {
+        final dt = createdAt.toDate();
+        const months = [
+          'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        ];
+        dateStr = '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+      }
+
       setState(() {
         _status        = (data['status']        as String? ?? 'PENDING').toUpperCase();
         _sentTime      =  data['time']          as String? ?? '';
+        _sentDate      =  dateStr;
         _specification =  data['specification'] as String? ?? '';
         _description   =  data['description']  as String? ?? '';
       });
@@ -1092,7 +1188,7 @@ class _SignalSentDialogState extends State<_SignalSentDialog> {
                   if (_sentTime.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
-                      'Oras na nireport: $_sentTime',
+                      'Oras naisumite: $_sentTime',
                       style: const TextStyle(
                           fontSize: 15, color: Colors.black54),
                     ),
@@ -1117,6 +1213,7 @@ class _SignalSentDialogState extends State<_SignalSentDialog> {
             _row('ID ng insidente',
                 '#${widget.incidentId.substring(0, min(10, widget.incidentId.length))}'),
             _row('Uri ng Emergency', widget.emergencyType),
+            _row('Petsa', _sentDate.isNotEmpty ? _sentDate : '–'),
             _row('Espesipikasyon',
                 _specification.isNotEmpty ? _specification : '–'),
             _row('Deskripsyon',
