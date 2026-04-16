@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 
-
 class ResponderTile extends StatelessWidget {
   final String rID;
   final String name;
   final String loc;
   final String dept;
   final bool isActive;
+  final bool canDelete;
+  final String? creatorResponderId;
   final VoidCallback? onDelete;
+  
+  final dynamic isAdmin;
 
   const ResponderTile({
     super.key,
@@ -16,11 +19,12 @@ class ResponderTile extends StatelessWidget {
     required this.loc,
     required this.dept,
     required this.isActive,
+    this.isAdmin = false,
+    this.canDelete = false, //default
+    this.creatorResponderId,
     this.onDelete,
   });
 
-/// GETTERS
-//to get initials
   String get _initials {
     if (name.isEmpty) return "??";
     List<String> names = name.split(" ");
@@ -30,7 +34,6 @@ class ResponderTile extends StatelessWidget {
     return names[0][0].toUpperCase();
   }
 
-  //change colors depending on dept of user
   Color _getDeptColor() {
     switch (dept.toLowerCase()) {
       case 'fire': return Colors.orange;
@@ -58,8 +61,8 @@ class ResponderTile extends StatelessWidget {
         ],
       ),
       child: ListTile(
-        contentPadding: EdgeInsets.zero, 
-        tileColor: Colors.transparent, 
+        contentPadding: EdgeInsets.zero,
+        tileColor: Colors.transparent,
         leading: CircleAvatar(
           backgroundColor: _getDeptColor().withValues(alpha:0.2),
           child: Text(
@@ -80,11 +83,22 @@ class ResponderTile extends StatelessWidget {
           children: [
             Text(rID, style: const TextStyle(fontSize: 12, color: Colors.blueGrey, fontWeight: FontWeight.w600)),
             Text(loc, style: const TextStyle(fontSize: 12)),
+            //  ADMIN LINE
+            const SizedBox(height: 2),
+            Text(
+              'Admin: $creatorResponderId',
+              style: TextStyle(
+                fontSize: 11,
+                color: canDelete ? Colors.grey.shade500 : Colors.grey.shade400,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
           ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // status badge
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
@@ -104,14 +118,22 @@ class ResponderTile extends StatelessWidget {
                 ),
               ),
             ),
-            if (onDelete != null) ...[
+
+            if (!isAdmin) ...[
               const SizedBox(width: 8),
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
-                onPressed: onDelete,
-              ),
+              if (canDelete)
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                  onPressed: onDelete,
+                  tooltip: 'Delete responder',
+                )
+              else
+                Tooltip(
+                  message: "Created by another admin",
+                  child: Icon(Icons.lock_outline, color: Colors.grey.shade400, size: 18),
+                ),
             ],
           ],
         ),
